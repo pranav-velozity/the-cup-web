@@ -36,6 +36,7 @@ export default function Home() {
   const { user } = useUser();
   const { go } = useNav();
   const [tournaments, setTournaments] = useState(null);
+  const [joined, setJoined] = useState([]);
   const [err, setErr] = useState(null);
   const first = user?.firstName || "there";
 
@@ -43,6 +44,9 @@ export default function Home() {
     api("/api/organizer/tournaments")
       .then((rows) => setTournaments(rows))
       .catch((e) => { setErr(e.message); setTournaments([]); });
+    api("/api/player/tournaments")
+      .then((rows) => setJoined(rows || []))
+      .catch(() => setJoined([]));
   }, [api]);
 
   useEffect(() => { load(); }, [load]);
@@ -81,6 +85,18 @@ export default function Home() {
               <p className="help" style={{ textAlign: "center", marginTop: 4 }}>Swipe a tournament left to delete it.</p>
             </>
           )}
+
+        {joined.filter((j) => !(tournaments || []).some((o) => o.id === j.id)).length > 0 && (
+          <>
+            <div className="lab" style={{ marginTop: 20 }}>Playing in</div>
+            {joined.filter((j) => !(tournaments || []).some((o) => o.id === j.id)).map((t) => (
+              <button key={t.id} className="act" onClick={() => go("board", { code: t.code })}>
+                <b>{t.name}</b>
+                <p>{t.team_a_name} vs {t.team_b_name} · code {t.code}</p>
+              </button>
+            ))}
+          </>
+        )}
       </div>
     </div>
   );
