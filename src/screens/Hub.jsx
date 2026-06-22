@@ -24,7 +24,7 @@ export default function Hub() {
   if (err) return (<div className="screen"><Bar title="Home" onBack={back} /><div className="pad"><div className="ban err">{err}</div></div></div>);
   if (!t) return (<div className="screen"><Bar title="Home" onBack={back} /><Spinner /></div>);
 
-  const teamA = { name: t.team_a_name, color: t.team_a_color, emoji: t.team_a_emoji, kind: t.team_a_kind };
+  const teamA = { name: t.team_a_name, color: t.team_a_color, emoji: t.team_a_emoji, kind: t.team_a_kind, logoUrl: t.team_a_logo_url };
   const ca = t.roster.filter((r) => r.team === "A").length;
   const cb = t.roster.filter((r) => r.team === "B").length;
   let setM = 0, totM = t.matches.length;

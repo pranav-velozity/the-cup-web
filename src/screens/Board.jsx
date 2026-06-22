@@ -38,8 +38,8 @@ export default function Board() {
   if (!board) return (<div className="screen"><Bar title="Tournament" onBack={back} /><Spinner /></div>);
 
   const A = board.teamA, B = board.teamB;
-  const teamA = { name: A.name, color: A.color };
-  const teamB = { name: B.name, color: B.color };
+  const teamA = { name: A.name, color: A.color, emoji: A.emoji, kind: A.kind, logoUrl: A.logoUrl };
+  const teamB = { name: B.name, color: B.color, emoji: B.emoji, kind: B.kind, logoUrl: B.logoUrl };
   const labels = { tight: "TIGHT", tied: "TIED", ahead: "AHEAD", final: "FINAL" };
 
   const tile = (m) => (

@@ -26,18 +26,27 @@ export default function Pairings() {
     const r = t.roster.find((x) => x.id === id);
     return r ? (r.planned_name || r.phone) : null;
   };
-  const dayMatches = t.matches.filter((m) => m.day_index === day);
   const dy = t.days.find((d) => d.day_index === day) || { format: "singles" };
+  const isComplete = (m) => dy.format === "scramble"
+    ? (m.side_a?.[0] && m.side_a?.[1] && m.side_b?.[0] && m.side_b?.[1])
+    : (m.side_a?.[0] && m.side_b?.[0]);
+
+  // Completed pairings sink to the bottom; keep ordinal order within groups.
+  const dayMatches = t.matches
+    .filter((m) => m.day_index === day)
+    .map((m, i) => ({ m, i }))
+    .sort((a, b) => (isComplete(a.m) ? 1 : 0) - (isComplete(b.m) ? 1 : 0) || a.i - b.i);
 
   const usedIds = (side) => {
     const ids = [];
-    for (const m of dayMatches) for (const id of (side === "A" ? m.side_a : m.side_b) || []) if (id) ids.push(id);
+    for (const m of t.matches.filter((x) => x.day_index === day))
+      for (const id of (side === "A" ? m.side_a : m.side_b) || []) if (id) ids.push(id);
     return ids;
   };
 
   const assign = async (playerId) => {
     if (!pick) return;
-    const m = dayMatches.find((x) => x.id === pick.matchId);
+    const m = t.matches.find((x) => x.id === pick.matchId);
     const sideKey = pick.side === "A" ? "side_a" : "side_b";
     const arr = (m[sideKey] || []).slice();
     arr[pick.idx] = playerId;
@@ -58,12 +67,30 @@ export default function Pairings() {
     );
   };
 
+  // Picker shown right under the day toggle when a slot is selected.
+  const picker = pick && (() => {
+    const used = usedIds(pick.side);
+    const avail = t.roster.filter((p) => p.team === pick.side && !used.includes(p.id));
+    return (
+      <div style={{ background: "#E9F6EF", border: "1px solid #BfE3Cf", borderRadius: 14, padding: "12px 13px", marginBottom: 14 }}>
+        <div className="lab" style={{ marginBottom: 8 }}>Pick a {pick.side === "A" ? t.team_a_name : t.team_b_name} player</div>
+        <div>
+          {avail.length === 0 && <span className="muted" style={{ fontSize: 13 }}>No more {pick.side === "A" ? t.team_a_name : t.team_b_name} players available — add them in Roster.</span>}
+          {avail.map((p) => (
+            <span key={p.id} className="chip" style={{ background: "#fff" }} onClick={() => assign(p.id)}>{p.planned_name || p.phone}</span>
+          ))}
+        </div>
+        <button className="linkbtn" style={{ textAlign: "left", marginTop: 4 }} onClick={() => setPick(null)}>Cancel</button>
+      </div>
+    );
+  })();
+
   return (
     <div className="screen">
       <Bar title="Hub" onBack={back} />
       <div className="pad">
         <div className="h1">Pairings</div>
-        <p className="sub">Tap a slot, then tap a player. You can't double-book within a day.</p>
+        <p className="sub">Tap a slot, then tap a player. Assigned players drop off the list, and finished matches move down.</p>
 
         <div className="seg">
           {t.days.map((d) => (
@@ -73,37 +100,25 @@ export default function Pairings() {
           ))}
         </div>
 
-        {dayMatches.map((m, i) => dy.format === "singles" ? (
-          <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 8 }}>
-            <span style={{ width: 20, fontWeight: 800, color: "#9aa394", fontSize: 13 }}>{i + 1}</span>
-            {slot(m, "A", 0, t.team_a_name)}
-            <span className="muted" style={{ fontSize: 12 }}>v</span>
-            {slot(m, "B", 0, t.team_b_name)}
-          </div>
-        ) : (
-          <div key={m.id} style={{ border: "1px solid var(--line)", background: "#fff", borderRadius: 12, padding: 10, marginBottom: 8 }}>
-            <div style={{ fontWeight: 700, color: "#9aa394", fontSize: 12, marginBottom: 6 }}>Match {i + 1}</div>
-            <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>{slot(m, "A", 0, t.team_a_name + " 1")}{slot(m, "A", 1, t.team_a_name + " 2")}</div>
-            <div style={{ display: "flex", gap: 6 }}>{slot(m, "B", 0, t.team_b_name + " 1")}{slot(m, "B", 1, t.team_b_name + " 2")}</div>
-          </div>
-        ))}
+        {picker}
 
-        {pick && (() => {
-          const used = usedIds(pick.side);
-          const avail = t.roster.filter((p) => p.team === pick.side);
-          return (
-            <div style={{ position: "sticky", bottom: 0, background: "var(--bg)", borderTop: "1px solid var(--line)", padding: "12px 0 4px", marginTop: 10 }}>
-              <div className="lab">Pick a {pick.side === "A" ? t.team_a_name : t.team_b_name} player</div>
-              <div>
-                {avail.length === 0 && <span className="muted">No players yet — add them in Roster.</span>}
-                {avail.map((p) => {
-                  const u = used.includes(p.id);
-                  return <span key={p.id} className={`chip${u ? " used" : ""}`} onClick={() => !u && assign(p.id)}>{p.planned_name || p.phone}</span>;
-                })}
-              </div>
+        {dayMatches.map(({ m, i }) => {
+          const done = isComplete(m);
+          return dy.format === "singles" ? (
+            <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 8, opacity: done ? 0.7 : 1 }}>
+              <span style={{ width: 20, fontWeight: 800, color: "#9aa394", fontSize: 13 }}>{i + 1}</span>
+              {slot(m, "A", 0, t.team_a_name)}
+              <span className="muted" style={{ fontSize: 12 }}>v</span>
+              {slot(m, "B", 0, t.team_b_name)}
+            </div>
+          ) : (
+            <div key={m.id} style={{ border: "1px solid var(--line)", background: "#fff", borderRadius: 12, padding: 10, marginBottom: 8, opacity: done ? 0.7 : 1 }}>
+              <div style={{ fontWeight: 700, color: "#9aa394", fontSize: 12, marginBottom: 6 }}>Match {i + 1}{done ? " · set" : ""}</div>
+              <div style={{ display: "flex", gap: 6, marginBottom: 6 }}>{slot(m, "A", 0, t.team_a_name + " 1")}{slot(m, "A", 1, t.team_a_name + " 2")}</div>
+              <div style={{ display: "flex", gap: 6 }}>{slot(m, "B", 0, t.team_b_name + " 1")}{slot(m, "B", 1, t.team_b_name + " 2")}</div>
             </div>
           );
-        })()}
+        })}
       </div>
     </div>
   );

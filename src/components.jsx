@@ -3,11 +3,16 @@ import { T } from "./theme.js";
 export function Avatar({ team, size = 44 }) {
   const bg = team?.color || T.teamA;
   const kind = team?.kind || "crest";
+  const logo = team?.logoUrl || team?.logo_url;
   const initials = (team?.name || "T")
     .split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
   return (
-    <div className="crest" style={{ width: size, height: size, background: bg, fontSize: size * 0.34 }}>
-      {kind === "emoji" && team?.emoji ? <span style={{ fontSize: size * 0.5 }}>{team.emoji}</span> : initials}
+    <div className="crest" style={{ width: size, height: size, background: bg, fontSize: size * 0.34, overflow: "hidden" }}>
+      {kind === "logo" && logo
+        ? <img src={logo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        : kind === "emoji" && team?.emoji
+        ? <span style={{ fontSize: size * 0.5 }}>{team.emoji}</span>
+        : initials}
     </div>
   );
 }

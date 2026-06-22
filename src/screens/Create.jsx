@@ -19,8 +19,25 @@ export default function Create() {
   const [busy, setBusy] = useState(false);
 
   const [name, setName] = useState("");
-  const [a, setA] = useState({ name: "Eagles", color: "#2E7D5B", kind: "crest", emoji: null });
-  const [b, setB] = useState({ name: "Hawks", color: "#B68A2E", kind: "crest", emoji: null });
+  const [a, setA] = useState({ name: "Eagles", color: "#2E7D5B", kind: "crest", emoji: null, logoUrl: null });
+  const [b, setB] = useState({ name: "Hawks", color: "#B68A2E", kind: "crest", emoji: null, logoUrl: null });
+
+  // Downscale an uploaded image to a small square data URL (no external storage).
+  const onLogo = (set, tm) => (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const img = new Image();
+    img.onload = () => {
+      const S = 128, c = document.createElement("canvas");
+      c.width = S; c.height = S;
+      const ctx = c.getContext("2d");
+      const scale = Math.max(S / img.width, S / img.height);
+      const w = img.width * scale, h = img.height * scale;
+      ctx.drawImage(img, (S - w) / 2, (S - h) / 2, w, h);
+      set({ ...tm, kind: "logo", logoUrl: c.toDataURL("image/jpeg", 0.82) });
+    };
+    img.src = URL.createObjectURL(file);
+  };
   const [days, setDays] = useState(DEFAULT_DAYS.map((d) => ({ ...d })));
 
   const setDay = (i, patch) => setDays((ds) => ds.map((d, j) => (j === i ? { ...d, ...patch } : d)));
@@ -110,8 +127,9 @@ export default function Create() {
             {[["A", a, setA], ["B", b, setB]].map(([k, tm, set]) => (
               <div key={k} style={{ border: "1px solid var(--line)", background: "#fff", borderRadius: 16, padding: 14, marginBottom: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 11 }}>
-                  <div className="crest" style={{ width: 42, height: 42, background: tm.color, fontSize: 18 }}>
-                    {tm.kind === "emoji" && tm.emoji ? <span style={{ fontSize: 22 }}>{tm.emoji}</span>
+                  <div className="crest" style={{ width: 42, height: 42, background: tm.color, fontSize: 18, overflow: "hidden" }}>
+                    {tm.kind === "logo" && tm.logoUrl ? <img src={tm.logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      : tm.kind === "emoji" && tm.emoji ? <span style={{ fontSize: 22 }}>{tm.emoji}</span>
                       : (tm.name || "T").split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
                   </div>
                   <b style={{ fontSize: 15 }}>{tm.name}</b>
@@ -119,6 +137,7 @@ export default function Create() {
                 <div className="seg">
                   <button className={tm.kind === "crest" ? "on" : ""} onClick={() => set({ ...tm, kind: "crest" })}>Crest</button>
                   <button className={tm.kind === "emoji" ? "on" : ""} onClick={() => set({ ...tm, kind: "emoji" })}>Emoji</button>
+                  <button className={tm.kind === "logo" ? "on" : ""} onClick={() => set({ ...tm, kind: "logo" })}>Logo</button>
                 </div>
                 {tm.kind === "emoji" && (
                   <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 }}>
@@ -128,6 +147,12 @@ export default function Create() {
                           border: tm.emoji === e ? "2px solid #3E9D6C" : "1px solid var(--line)", background: tm.emoji === e ? "#E9F6EF" : "#fff" }}>{e}</button>
                     ))}
                   </div>
+                )}
+                {tm.kind === "logo" && (
+                  <label className="btn ghost" style={{ display: "block", textAlign: "center", marginBottom: 10, marginTop: 0, cursor: "pointer" }}>
+                    {tm.logoUrl ? "✓ Logo added — tap to replace" : "⬆ Upload a logo / photo"}
+                    <input type="file" accept="image/*" style={{ display: "none" }} onChange={onLogo(set, tm)} />
+                  </label>
                 )}
                 <div className="lab" style={{ marginTop: 4 }}>Team colour</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
