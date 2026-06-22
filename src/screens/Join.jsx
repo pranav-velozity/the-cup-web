@@ -44,7 +44,23 @@ export default function Join() {
             <div>We see your number as <b>{diag.yourPhone || "— none on your account —"}</b>.</div>
             {!diag.tournamentFound
               ? <div style={{ marginTop: 4 }}>No tournament found for code <b>{code}</b>.</div>
-              : <div style={{ marginTop: 4 }}>The roster for <b>{diag.tournamentName}</b> has <b>{diag.rosterCount}</b> number(s){diag.matched ? "" : ", and none match yours"}. Ask your organizer to add <b>{diag.yourPhone}</b> exactly.</div>}
+              : (
+                <>
+                  <div style={{ marginTop: 4 }}>The roster for <b>{diag.tournamentName}</b> has <b>{diag.rosterCount}</b> number(s){diag.matched ? "" : ", and none match yours"}.</div>
+                  {diag.roster?.length > 0 && (
+                    <div style={{ marginTop: 8 }}>
+                      <div className="lab" style={{ marginBottom: 4 }}>On the roster</div>
+                      {diag.roster.map((r, i) => (
+                        <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "2px 0", color: r.key === diag.yourKey ? "#2F8A5E" : "var(--ink)" }}>
+                          <span>{r.name || "(no name)"}</span>
+                          <span style={{ fontVariantNumeric: "tabular-nums" }}>{r.phone}{r.key === diag.yourKey ? " ✓" : ""}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div style={{ marginTop: 8 }} className="muted">Fix: in Roster, make sure <b>{diag.yourPhone}</b> is listed for this player.</div>
+                </>
+              )}
           </div>
         )}
 
