@@ -63,12 +63,7 @@ export default function Roster() {
       <Bar title="Hub" onBack={back} />
       <div className="pad">
         <div className="h1">Roster</div>
-        <p className="sub">Paste a list of names + phone numbers, tag the batch to a team, then add.</p>
-
-        <button className="btn ghost" style={{ marginBottom: 14, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }} onClick={share}>
-          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" /></svg>
-          Share invite (code + link)
-        </button>
+        <p className="sub">Add players first (name + phone, one per line), then share the invite so they can join.</p>
 
         {msg && <div className={`ban ${msg.k}`}>{msg.t}</div>}
 
@@ -76,7 +71,7 @@ export default function Roster() {
           <button className={team === "A" ? "on" : ""} onClick={() => setTeam("A")}>Add as {t.team_a_name}</button>
           <button className={team === "B" ? "on" : ""} onClick={() => setTeam("B")}>Add as {t.team_b_name}</button>
         </div>
-        <textarea className="inp" style={{ minHeight: 120, resize: "vertical" }} placeholder={"Dave Chen 0412 345 678\nSarah Lin 0413 222 111"}
+        <textarea className="inp" style={{ minHeight: 120, resize: "vertical" }} placeholder={"Dave Chen 555 010 1234\nSarah Lin 555 222 0111"}
           value={paste} onChange={(e) => setPaste(e.target.value)} />
         <button className="btn grn" onClick={addBatch} disabled={busy}>{busy ? "Adding…" : `Add to ${team === "A" ? t.team_a_name : t.team_b_name}`}</button>
 
@@ -91,6 +86,15 @@ export default function Roster() {
               </span>
             </div>
           ))}
+
+        {t.roster.length > 0 ? (
+          <button className="btn ghost" style={{ marginTop: 18, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }} onClick={share}>
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4" /></svg>
+            Share invite (code + link)
+          </button>
+        ) : (
+          <p className="help" style={{ textAlign: "center", marginTop: 18 }}>Add at least one player to unlock the invite.</p>
+        )}
       </div>
     </div>
   );
