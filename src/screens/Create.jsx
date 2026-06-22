@@ -114,9 +114,14 @@ export default function Create() {
   const create = async () => {
     setBusy(true); setErr(null);
     try {
+      const cleanDays = days.map((d) => ({
+        ...d,
+        count: Math.min(30, Math.max(1, +d.count || 1)),
+        pph: Math.min(10, Math.max(1, +d.pph || 1)),
+      }));
       const t = await api("/api/organizer/redeem", {
         method: "POST",
-        body: JSON.stringify({ code, name: name.trim() || "Untitled Cup", teamA: a, teamB: b, days }),
+        body: JSON.stringify({ code, name: name.trim() || "Untitled Cup", teamA: a, teamB: b, days: cleanDays }),
       });
       reset("home");
       go("hub", { code: t.code });
@@ -226,9 +231,13 @@ export default function Create() {
                 </div>
                 <div style={{ display: "flex", gap: 9, marginTop: 9 }}>
                   <div style={{ flex: 1 }}><label className="lab">Matches</label>
-                    <input className="inp" type="number" value={d.count} onChange={(e) => setDay(i, { count: Math.max(1, Math.min(30, +e.target.value || 1)) })} /></div>
+                    <input className="inp" type="number" inputMode="numeric" value={d.count}
+                      onChange={(e) => setDay(i, { count: e.target.value === "" ? "" : Math.min(30, Math.max(0, +e.target.value || 0)) })}
+                      onBlur={(e) => setDay(i, { count: Math.min(30, Math.max(1, +e.target.value || 1)) })} /></div>
                   <div style={{ flex: 1 }}><label className="lab">Points / hole</label>
-                    <input className="inp" type="number" value={d.pph} onChange={(e) => setDay(i, { pph: Math.max(1, Math.min(10, +e.target.value || 1)) })} /></div>
+                    <input className="inp" type="number" inputMode="numeric" value={d.pph}
+                      onChange={(e) => setDay(i, { pph: e.target.value === "" ? "" : Math.min(10, Math.max(0, +e.target.value || 0)) })}
+                      onBlur={(e) => setDay(i, { pph: Math.min(10, Math.max(1, +e.target.value || 1)) })} /></div>
                 </div>
                 <div className="checkrow" onClick={() => setDay(i, { playAll: !d.playAll })}>
                   <div className={`checkbox${d.playAll ? " on" : ""}`}>✓</div>

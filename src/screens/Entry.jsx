@@ -2,8 +2,9 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useApi, useScoreApi } from "../api.js";
 import { useNav } from "../store.jsx";
 import { Bar, Avatar, Spinner } from "../components.jsx";
-import { mscore } from "../lib/scoring.js";
+import { mscore, matchDone } from "../lib/scoring.js";
 import { enqueue, flush, pendingCount } from "../lib/outbox.js";
+import { playTap, playConfirm } from "../lib/sound.js";
 import { T } from "../theme.js";
 
 export default function Entry() {
@@ -75,6 +76,9 @@ export default function Entry() {
     const next = holes.slice();
     next[sel] = next[sel] === r ? null : r;
     setHoles(next);
+    playTap();
+    // Flourish the moment a match becomes decided.
+    if (!matchDone(mscore(holes), m.playAll) && matchDone(mscore(next), m.playAll)) playConfirm();
     if (next[sel] && sel < 17) setSel(sel + 1);
 
     const clientTs = new Date().toISOString();

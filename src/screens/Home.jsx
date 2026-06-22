@@ -3,6 +3,7 @@ import { useUser } from "@clerk/clerk-react";
 import { useApi } from "../api.js";
 import { useNav } from "../store.jsx";
 import { Spinner } from "../components.jsx";
+import { soundOn, setSoundOn } from "../lib/sound.js";
 
 // Swipe a tournament left to reveal Delete (organizer owns everything here).
 function TournamentRow({ t, onOpen, onDelete }) {
@@ -38,7 +39,10 @@ export default function Home() {
   const [tournaments, setTournaments] = useState(null);
   const [joined, setJoined] = useState([]);
   const [err, setErr] = useState(null);
+  const [snd, setSnd] = useState(soundOn());
   const first = user?.firstName || "there";
+
+  const toggleSound = () => { const v = !snd; setSoundOn(v); setSnd(v); };
 
   const load = useCallback(() => {
     api("/api/organizer/tournaments")
@@ -59,7 +63,20 @@ export default function Home() {
 
   return (
     <div className="screen">
-      <div className="bar"><span style={{ fontWeight: 700 }}>Home</span><span className="wordmark">TOTO</span></div>
+      <div className="bar">
+        <span style={{ fontWeight: 700 }}>Home</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button onClick={toggleSound} title={snd ? "Sound on" : "Sound off"}
+            style={{ background: "none", border: "none", cursor: "pointer", color: snd ? "#2E7D5B" : "#9aa394", padding: 0, display: "flex" }}>
+            {snd ? (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5 6 9H2v6h4l5 4z" /><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M19 5a9 9 0 0 1 0 14" /></svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5 6 9H2v6h4l5 4z" /><path d="M22 9l-6 6M16 9l6 6" /></svg>
+            )}
+          </button>
+          <span className="wordmark">TOTO</span>
+        </div>
+      </div>
       <div className="pad">
         <div className="h1">Hi {first} 👋</div>
         <p className="sub">Start a tournament or jump into one you're playing.</p>

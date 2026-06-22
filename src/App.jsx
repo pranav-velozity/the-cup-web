@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { SignedIn, SignedOut, useUser } from "@clerk/clerk-react";
 import { NavProvider, useNav } from "./store.jsx";
 import { BottomNav } from "./components.jsx";
+import Splash from "./screens/Splash.jsx";
 import SignIn from "./screens/SignIn.jsx";
 import Home from "./screens/Home.jsx";
 import Create from "./screens/Create.jsx";
@@ -42,11 +43,11 @@ function Shell() {
 export default function App() {
   const [splashed, setSplashed] = useState(false);
 
-  // Splash shows on its own first, before anything else (including Clerk).
+  // The animated splash plays on every cold load, before Clerk or any screen.
   if (!splashed) {
     return (
       <div className="phone-wrap">
-        <SplashGate onDone={() => setSplashed(true)} />
+        <Splash onDone={() => setSplashed(true)} />
       </div>
     );
   }
@@ -59,23 +60,6 @@ export default function App() {
       <SignedIn>
         <NavProvider><Shell /></NavProvider>
       </SignedIn>
-    </div>
-  );
-}
-
-function SplashGate({ onDone }) {
-  const [out, setOut] = useState(false);
-  useEffect(() => {
-    const t = setTimeout(() => setOut(true), 1800);
-    return () => clearTimeout(t);
-  }, []);
-  return (
-    <div className={`splash${out ? " out" : ""}`} onTransitionEnd={() => out && onDone()}>
-      <div className="sp-word">TOTO</div>
-      <div className="sp-tag">
-        <span className="c">Compete… </span>
-        <span className="d">मगर प्यार से</span>
-      </div>
     </div>
   );
 }
