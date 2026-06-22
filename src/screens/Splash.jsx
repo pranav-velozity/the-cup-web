@@ -38,25 +38,25 @@ export default function Splash({ onDone }) {
       if (!start.current) start.current = ts;
       const el = (ts - start.current) / 1000;
       setT(el);
-      if (el < 2.35) raf.current = requestAnimationFrame(loop);
+      if (el < 4.2) raf.current = requestAnimationFrame(loop);
       else setOut(true);
     };
     raf.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(raf.current);
   }, []);
 
-  const dp = clamp((t - 0.15) / 1.25, 0, 1);     // ball drop window
+  const dp = clamp((t - 0.35) / 2.1, 0, 1);        // slower, more readable ball drop
   const ballY = -300 * bounceDrop(dp);
-  const settle = clamp((dp - 0.86) / 0.14, 0, 1); // shrink into the cup at the end
+  const settle = clamp((dp - 0.86) / 0.14, 0, 1);  // shrink into the cup at the end
   const ballScale = 1 - settle * 0.55;
-  const confT = clamp((t - 1.25) / 0.7, 0, 1);    // confetti after it drops in
+  const confT = clamp((t - 2.1) / 0.9, 0, 1);       // confetti after it drops in
 
   const reveal = (s) => {
-    const o = clamp((t - s) / 0.42, 0, 1);
-    const e = easeOutBack(clamp((t - s) / 0.72, 0, 1));
+    const o = clamp((t - s) / 0.5, 0, 1);
+    const e = easeOutBack(clamp((t - s) / 0.85, 0, 1));
     return { opacity: o, transform: `translateY(${(1 - e) * 36}px)` };
   };
-  const wm = reveal(1.35), tag = reveal(1.65);
+  const wm = reveal(2.2), tag = reveal(2.7);
 
   return (
     <div className={`splash${out ? " out" : ""}`} style={{ background: BG }} onTransitionEnd={() => out && onDone()}>
