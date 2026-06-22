@@ -12,9 +12,10 @@ const DEFAULT_DAYS = [
 export default function Create() {
   const api = useApi();
   const { back, reset, go } = useNav();
-  const [step, setStep] = useState("pass");   // pass | wizard
+  const [step, setStep] = useState("pass");   // pass | request | issued | wizard
   const [page, setPage] = useState(1);
   const [code, setCode] = useState("");
+  const [reqName, setReqName] = useState("");
   const [err, setErr] = useState(null);
   const [busy, setBusy] = useState(false);
 
@@ -59,6 +60,52 @@ export default function Create() {
             value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} />
           <button className="btn grn" onClick={() => { setErr(null); setStep("wizard"); setPage(1); }}
             disabled={code.length !== 5}>Continue ›</button>
+          <button className="linkbtn" style={{ marginTop: 14 }} onClick={() => { setErr(null); setStep("request"); }}>
+            Don't have one? Request access
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "request") {
+    const getCode = async () => {
+      if (!reqName.trim()) { setErr("Please enter your name first."); return; }
+      setBusy(true); setErr(null);
+      try {
+        const res = await api("/api/organizer/request-access", {
+          method: "POST", body: JSON.stringify({ name: reqName.trim() }),
+        });
+        setCode(res.code); setStep("issued");
+      } catch (e) { setErr(e.message); }
+      setBusy(false);
+    };
+    return (
+      <div className="screen">
+        <Bar title="Home" onBack={() => { setErr(null); setStep("pass"); }} />
+        <div className="pad">
+          <div className="h1">Request access</div>
+          <p className="sub">Pop your name in and we'll generate a gate pass for you.</p>
+          {err && <div className="ban err">{err}</div>}
+          <div className="field"><label className="lab">Your name</label>
+            <input className="inp" placeholder="e.g. Priya Shah" value={reqName} onChange={(e) => setReqName(e.target.value)} /></div>
+          <button className="btn grn" onClick={getCode} disabled={busy}>{busy ? "Generating…" : "Get my code ›"}</button>
+          <button className="linkbtn" style={{ marginTop: 14 }} onClick={() => { setErr(null); setStep("pass"); }}>‹ Back to gate pass</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "issued") {
+    return (
+      <div className="screen">
+        <Bar title="Home" onBack={back} />
+        <div className="pad">
+          <div className="h1">You're in ✨</div>
+          <p className="sub">Here's your gate pass — it's yours to keep.</p>
+          <div className="codecard"><div className="muted" style={{ textAlign: "center", fontSize: 12, marginBottom: 4 }}>Your code</div><div className="bigcode">{code}</div></div>
+          <p className="help" style={{ textAlign: "center" }}>An admin can see your request by name.</p>
+          <button className="btn grn" onClick={() => { setErr(null); setStep("wizard"); setPage(1); }}>Start setup ›</button>
         </div>
       </div>
     );
