@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SignedIn, SignedOut, useUser } from "@clerk/clerk-react";
 import { NavProvider, useNav } from "./store.jsx";
 import { BottomNav } from "./components.jsx";
@@ -23,7 +23,6 @@ function Shell() {
     hub: <Hub />, roster: <Roster />, pairings: <Pairings />,
     board: <Board />, entry: <Entry />,
   };
-
   const showNav = ["home", "hub", "board"].includes(screen);
 
   return (
@@ -42,9 +41,18 @@ function Shell() {
 
 export default function App() {
   const [splashed, setSplashed] = useState(false);
+
+  // Splash shows on its own first, before anything else (including Clerk).
+  if (!splashed) {
+    return (
+      <div className="phone-wrap">
+        <SplashGate onDone={() => setSplashed(true)} />
+      </div>
+    );
+  }
+
   return (
     <div className="phone-wrap">
-      {!splashed && <SplashGate onDone={() => setSplashed(true)} />}
       <SignedOut>
         <div className="phone"><SignIn /></div>
       </SignedOut>
@@ -57,9 +65,12 @@ export default function App() {
 
 function SplashGate({ onDone }) {
   const [out, setOut] = useState(false);
-  if (!out) setTimeout(() => setOut(true), 2200);
+  useEffect(() => {
+    const t = setTimeout(() => setOut(true), 1800);
+    return () => clearTimeout(t);
+  }, []);
   return (
-    <div className={`splash${out ? " out" : ""}`} onTransitionEnd={onDone}>
+    <div className={`splash${out ? " out" : ""}`} onTransitionEnd={() => out && onDone()}>
       <div className="sp-word">TOTO</div>
       <div className="sp-tag">
         <span className="c">Compete… </span>

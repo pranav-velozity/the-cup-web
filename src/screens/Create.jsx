@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useApi } from "../api.js";
 import { useNav } from "../store.jsx";
 import { Bar } from "../components.jsx";
-import { SWATCHES } from "../theme.js";
+import { SWATCHES, EMOJI } from "../theme.js";
 
 const DEFAULT_DAYS = [
   { format: "singles", count: 18, pph: 1, playAll: true },
@@ -19,8 +19,8 @@ export default function Create() {
   const [busy, setBusy] = useState(false);
 
   const [name, setName] = useState("");
-  const [a, setA] = useState({ name: "Eagles", color: "#2E7D5B" });
-  const [b, setB] = useState({ name: "Hawks", color: "#B68A2E" });
+  const [a, setA] = useState({ name: "Eagles", color: "#2E7D5B", kind: "crest", emoji: null });
+  const [b, setB] = useState({ name: "Hawks", color: "#B68A2E", kind: "crest", emoji: null });
   const [days, setDays] = useState(DEFAULT_DAYS.map((d) => ({ ...d })));
 
   const setDay = (i, patch) => setDays((ds) => ds.map((d, j) => (j === i ? { ...d, ...patch } : d)));
@@ -109,8 +109,27 @@ export default function Create() {
             <p className="sub">Give each side a colour.</p>
             {[["A", a, setA], ["B", b, setB]].map(([k, tm, set]) => (
               <div key={k} style={{ border: "1px solid var(--line)", background: "#fff", borderRadius: 16, padding: 14, marginBottom: 12 }}>
-                <b style={{ fontSize: 15 }}>{tm.name}</b>
-                <div className="lab" style={{ marginTop: 10 }}>Team colour</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 11 }}>
+                  <div className="crest" style={{ width: 42, height: 42, background: tm.color, fontSize: 18 }}>
+                    {tm.kind === "emoji" && tm.emoji ? <span style={{ fontSize: 22 }}>{tm.emoji}</span>
+                      : (tm.name || "T").split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
+                  </div>
+                  <b style={{ fontSize: 15 }}>{tm.name}</b>
+                </div>
+                <div className="seg">
+                  <button className={tm.kind === "crest" ? "on" : ""} onClick={() => set({ ...tm, kind: "crest" })}>Crest</button>
+                  <button className={tm.kind === "emoji" ? "on" : ""} onClick={() => set({ ...tm, kind: "emoji" })}>Emoji</button>
+                </div>
+                {tm.kind === "emoji" && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 }}>
+                    {EMOJI.map((e) => (
+                      <button key={e} onClick={() => set({ ...tm, emoji: e })}
+                        style={{ width: 38, height: 38, fontSize: 20, borderRadius: 10, cursor: "pointer",
+                          border: tm.emoji === e ? "2px solid #3E9D6C" : "1px solid var(--line)", background: tm.emoji === e ? "#E9F6EF" : "#fff" }}>{e}</button>
+                    ))}
+                  </div>
+                )}
+                <div className="lab" style={{ marginTop: 4 }}>Team colour</div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
                   {SWATCHES.map((s) => (
                     <button key={s} onClick={() => set({ ...tm, color: s })}
