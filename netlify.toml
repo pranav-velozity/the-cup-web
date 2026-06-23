@@ -2,6 +2,16 @@
   command = "npm run build"
   publish = "dist"
 
+# Service worker + manifest must revalidate so updates land promptly.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache"
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Cache-Control = "no-cache"
+
 # SPA fallback so client-side navigation + Clerk hash routing work
 [[redirects]]
   from = "/*"

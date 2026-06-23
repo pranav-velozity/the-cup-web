@@ -38,7 +38,7 @@ export default function Splash({ onDone }) {
       if (!start.current) start.current = ts;
       const el = (ts - start.current) / 1000;
       setT(el);
-      if (el < 4.2) raf.current = requestAnimationFrame(loop);
+      if (el < 5.6) raf.current = requestAnimationFrame(loop);
       else setOut(true);
     };
     raf.current = requestAnimationFrame(loop);
@@ -51,6 +51,10 @@ export default function Splash({ onDone }) {
   const ballScale = 1 - settle * 0.55;
   const confT = clamp((t - 2.1) / 0.9, 0, 1);       // confetti after it drops in
 
+  // Everything except the tagline fades out early; the tagline lingers and
+  // is the last thing to go (when the whole splash fades on `out`).
+  const others = 1 - clamp((t - 3.8) / 0.8, 0, 1);
+
   const reveal = (s) => {
     const o = clamp((t - s) / 0.5, 0, 1);
     const e = easeOutBack(clamp((t - s) / 0.85, 0, 1));
@@ -61,13 +65,13 @@ export default function Splash({ onDone }) {
 
   return (
     <div className={`splash${out ? " out" : ""}`} style={{ background: BG }} onTransitionEnd={() => out && onDone()}>
-      <div style={{ ...pill, marginBottom: 18, background: "#fff", border: "1px solid #E6EDE3",
+      <div style={{ ...pill, opacity: pill.opacity * others, marginBottom: 18, background: "#fff", border: "1px solid #E6EDE3",
         borderRadius: 20, padding: "8px 16px", boxShadow: "0 2px 10px rgba(27,42,34,.06)",
         fontWeight: 800, fontSize: 12.5, letterSpacing: ".12em" }}>
         <span style={{ color: GREEN }}>LIVE </span>
         <span style={{ color: INK }}>MATCH-PLAY SCORING</span>
       </div>
-      <div style={{ position: "relative", width: 200, height: 210 }}>
+      <div style={{ position: "relative", width: 200, height: 210, opacity: others }}>
         {/* cup */}
         <div style={{ position: "absolute", left: "50%", top: 150, width: 56, height: 17, marginLeft: -28, borderRadius: "50%", background: "#DCE2D6", boxShadow: "inset 0 2px 4px rgba(0,0,0,.12)" }} />
         {/* confetti from the cup */}
@@ -92,7 +96,7 @@ export default function Splash({ onDone }) {
           <circle cx="29" cy="33" r="2.2" fill="#dde3d8" /><circle cx="40" cy="36" r="2" fill="#dde3d8" />
         </svg>
       </div>
-      <div className="sp-word" style={{ ...wm, color: INK, fontSize: 54, marginTop: 4 }}>TOTO</div>
+      <div className="sp-word" style={{ ...wm, opacity: wm.opacity * others, color: INK, fontSize: 54, marginTop: 4 }}>TOTO</div>
       <div className="sp-tag" style={{ ...tag, fontSize: 15 }}>
         <span style={{ color: MUTED }}>Compete… </span>
         <span style={{ color: INK, fontFamily: "'Noto Sans Devanagari','Outfit',sans-serif" }}>मगर प्यार से</span>

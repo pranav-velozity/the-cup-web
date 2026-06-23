@@ -39,3 +39,10 @@ createRoot(document.getElementById("root")).render(
     </ClerkProvider>
   </React.StrictMode>
 );
+
+// Register the service worker (PWA install + offline shell + push).
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}

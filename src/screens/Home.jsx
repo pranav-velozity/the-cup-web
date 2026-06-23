@@ -3,6 +3,7 @@ import { useUser } from "@clerk/clerk-react";
 import { useApi } from "../api.js";
 import { useNav } from "../store.jsx";
 import { Spinner } from "../components.jsx";
+import InstallPrompt from "../components/InstallPrompt.jsx";
 import { soundOn, setSoundOn } from "../lib/sound.js";
 
 // Swipe a tournament left to reveal Delete (organizer owns everything here).
@@ -80,6 +81,8 @@ export default function Home() {
       <div className="pad">
         <div className="h1">Hi {first} 👋</div>
         <p className="sub">Start a tournament or jump into one you're playing.</p>
+
+        <InstallPrompt />
 
         <button className="act" onClick={() => go("create")}>
           <b>＋ Create a tournament</b>
