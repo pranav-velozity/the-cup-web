@@ -7,7 +7,7 @@ const STATUS_COLOR = { unused: "#9A7A1F", claimed: "#2F8A5E", revoked: "#a8a399"
 
 export default function Admin() {
   const api = useApi();
-  const { back } = useNav();
+  const { back, go } = useNav();
   const [passes, setPasses] = useState(null);
   const [minted, setMinted] = useState(null);
   const [err, setErr] = useState(null);
@@ -41,18 +41,25 @@ export default function Admin() {
         <div className="lab" style={{ marginTop: 18 }}>All passes</div>
         {passes === null ? <Spinner /> : passes.length === 0 ? (
           <p className="muted" style={{ fontSize: 13 }}>No passes yet.</p>
-        ) : passes.map((p) => (
-          <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 0", borderBottom: "1px solid var(--line)" }}>
-            <b style={{ fontSize: 18, letterSpacing: ".1em" }}>{p.code}</b>
-            <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: STATUS_COLOR[p.status] }}>{p.status}</span>
-            {p.requested_by && <span className="muted" style={{ fontSize: 12 }}>👤 {p.requested_by}</span>}
-            {p.tournament_name && <span className="muted" style={{ fontSize: 12 }}>{p.tournament_name}</span>}
-            {p.status === "unused" && (
-              <button className="btn ghost" style={{ marginLeft: "auto", width: "auto", padding: "5px 10px", fontSize: 12, marginTop: 0 }}
-                onClick={() => revoke(p.id)}>Revoke</button>
-            )}
-          </div>
-        ))}
+        ) : passes.map((p) => {
+          const openable = !!p.tournament_id;
+          return (
+            <div key={p.id} role={openable ? "button" : undefined}
+              onClick={openable ? () => go("adminview", { code: p.tournament_code, entry: { tid: p.tournament_id } }) : undefined}
+              style={{ display: "flex", alignItems: "center", gap: 10, padding: "11px 0", borderBottom: "1px solid var(--line)", cursor: openable ? "pointer" : "default" }}>
+              <b style={{ fontSize: 18, letterSpacing: ".1em" }}>{p.code}</b>
+              <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: STATUS_COLOR[p.status] }}>{p.status}</span>
+              {p.requested_by && <span className="muted" style={{ fontSize: 12 }}>👤 {p.requested_by}</span>}
+              {p.tournament_name && <span className="muted" style={{ fontSize: 12 }}>{p.tournament_name}</span>}
+              {p.status === "unused" ? (
+                <button className="btn ghost" style={{ marginLeft: "auto", width: "auto", padding: "5px 10px", fontSize: 12, marginTop: 0 }}
+                  onClick={(e) => { e.stopPropagation(); revoke(p.id); }}>Revoke</button>
+              ) : openable ? (
+                <span style={{ marginLeft: "auto", color: "var(--mut)", fontSize: 18 }}>›</span>
+              ) : null}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

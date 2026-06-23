@@ -63,6 +63,9 @@ export default function Board() {
         Day {m.dayIndex + 1} · {m.format === "scramble" ? "Scramble" : "Singles"}
         {m.done ? " · done" : ` · thru ${m.played}`}
       </div>
+      {!m.done && m.played > 0 && (
+        <span className="livedot" title="Live" style={{ position: "absolute", top: 9, right: 9 }} />
+      )}
       {m.hot && <span className="hot" style={{ position: "absolute", bottom: 7, right: 8, fontSize: 9 }}>
         <span style={{ display: "inline-block", width: 5, height: 5, borderRadius: "50%",
           background: m.hot === "A" ? A.color : B.color, marginRight: 4, verticalAlign: 1 }} />HOT</span>}
@@ -83,6 +86,9 @@ export default function Board() {
           Day {m.dayIndex + 1} · {m.format === "scramble" ? "Scramble" : "Singles"}{m.done ? " · done" : ` · thru ${m.played}`}
         </div>
       </div>
+      {!m.done && m.played > 0 && (
+        <span className="livedot" title="Live" style={{ position: "absolute", top: 9, right: 9 }} />
+      )}
     </div>
   );
 

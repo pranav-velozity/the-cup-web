@@ -14,6 +14,7 @@ import Pairings from "./screens/Pairings.jsx";
 import Board from "./screens/Board.jsx";
 import Entry from "./screens/Entry.jsx";
 import Notifications from "./screens/Notifications.jsx";
+import AdminView from "./screens/AdminView.jsx";
 
 function Shell() {
   const { screen, go, reset } = useNav();
@@ -24,6 +25,7 @@ function Shell() {
     home: <Home />, create: <Create />, join: <Join />, admin: <Admin />,
     hub: <Hub />, roster: <Roster />, pairings: <Pairings />,
     board: <Board />, entry: <Entry />, notifs: <Notifications />,
+    adminview: <AdminView />,
   };
   const showNav = ["home", "hub", "board"].includes(screen);
 

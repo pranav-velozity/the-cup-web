@@ -6,6 +6,7 @@ import { Spinner } from "../components.jsx";
 import InstallPrompt from "../components/InstallPrompt.jsx";
 import { soundOn, setSoundOn } from "../lib/sound.js";
 import { hasUnseen } from "./Notifications.jsx";
+import { enablePush, notifGranted } from "../lib/push.js";
 
 // Swipe a tournament left to reveal Delete (organizer owns everything here).
 function TournamentRow({ t, onOpen, onDelete }) {
@@ -60,6 +61,12 @@ export default function Home() {
   }, [api]);
 
   useEffect(() => { load(); }, [load]);
+
+  // Push subscriptions get invalidated when the service worker updates on a
+  // redeploy — silently re-subscribe on load so notifications keep flowing.
+  useEffect(() => {
+    if (notifGranted()) enablePush(api).catch(() => {});
+  }, [api]);
 
   const del = async (t) => {
     if (!window.confirm(`Delete "${t.name}"? This removes its roster, pairings and scores, and can't be undone.`)) return;
@@ -134,7 +141,7 @@ export default function Home() {
           </>
         )}
 
-        <div className="help" style={{ textAlign: "center", marginTop: 24, opacity: .6 }}>TOTO · build v0.6</div>
+        <div className="help" style={{ textAlign: "center", marginTop: 24, opacity: .6 }}>TOTO · build v0.7</div>
       </div>
     </div>
   );

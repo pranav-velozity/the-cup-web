@@ -70,6 +70,13 @@ export default function Join() {
         <div className="field"><label className="lab">Your name</label>
           <input className="inp" placeholder="e.g. Dave Chen" value={name} onChange={(e) => setName(e.target.value)} /></div>
         <button className="btn grn" onClick={join} disabled={busy || code.length !== 5}>{busy ? "Joining…" : "Join ›"}</button>
+        <button className="linkbtn" style={{ marginTop: 10 }} disabled={code.length !== 5}
+          onClick={() => go("board", { code })}>
+          Just watching? View the board ›
+        </button>
+        <p className="help" style={{ textAlign: "center", marginTop: 2 }}>
+          Anyone with the code can watch. You only need to be on the roster to enter scores.
+        </p>
       </div>
     </div>
   );
