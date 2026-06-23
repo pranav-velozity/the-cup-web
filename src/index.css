@@ -106,33 +106,32 @@ body {
   display: flex; flex-direction: column; min-height: 128px;
   box-shadow: 0 3px 12px rgba(27,42,34,.07), 0 1px 2px rgba(27,42,34,.04); transition: transform .14s ease; }
 .bigtile:active { transform: scale(.975); }
-.bigtile .ic { width: 42px; height: 42px; border-radius: 13px; display: flex; align-items: center;
-  justify-content: center; color: #fff; }
-/* tile icon chips — brand two-tone only (green + gold). Team colours stay
-   reserved for teams; UI chrome speaks only the brand palette. */
-.bigtile.create .ic, .bigtile.alerts .ic, .bigtile.board .ic, .bigtile.pairings .ic {
-  background: linear-gradient(135deg, #3E9D6C, #2E7D5B); }
-.bigtile.join .ic, .bigtile.gallery .ic, .bigtile.roster .ic, .bigtile.code .ic {
-  background: linear-gradient(135deg, #D4B05A, #C8A24C); }
-.bigtile.code { background: #FBF4E2; border-color: #EAD9A8; }
+.bigtile .ic { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; color: var(--ink); }
+.bigtile .ic svg { width: 27px; height: 27px; stroke-width: 1.7; }
+/* naked stroke icons — ink line-work; colour is reserved for state only.
+   The join-code stays gold since the code itself is the meaningful accent. */
+.bigtile.code { background: #FBF6E8; border-color: #ECDDB2; }
+.bigtile.code .ic { color: #C8A24C; }
 .bigtile.code b { color: #9A7A1F; }
 .bigtile.code p { color: #9A7A1F; opacity: .8; }
 
-/* tile motion */
+/* one-time entrance */
 @keyframes tileIn { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: none; } }
 .bigtile { animation: tileIn .42s cubic-bezier(.2,.7,.3,1) both; }
 .tilepair .bigtile:nth-child(2) { animation-delay: .06s; }
 .tilepair + .tilepair .bigtile { animation-delay: .10s; }
 .tilepair + .tilepair .bigtile:nth-child(2) { animation-delay: .16s; }
-.bigtile .ic { transition: transform .2s ease; }
-.bigtile .ic svg { transition: transform .25s ease; }
-/* primary CTA gently breathes; its plus rotates on press */
-@keyframes ctaBreathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-.bigtile.create .ic { animation: ctaBreathe 3.2s ease-in-out infinite; }
+
+/* press micro-interactions — each icon reacts to a tap in its own way */
+.bigtile .ic svg { transition: transform .22s cubic-bezier(.3,.8,.35,1.2); }
 .bigtile.create:active .ic svg { transform: rotate(90deg); }
-/* the alerts bell swings only when there's something unread */
-@keyframes bellSwing { 0%, 55%, 100% { transform: rotate(0); } 12%, 36% { transform: rotate(-13deg); } 24%, 48% { transform: rotate(13deg); } }
-.bigtile.alerts.unread .ic svg { transform-origin: 50% 5px; animation: bellSwing 2.4s ease-in-out infinite; }
+.bigtile.join:active .ic svg { transform: translateX(4px); }
+.bigtile.alerts:active .ic svg { transform: rotate(14deg); }
+.bigtile.gallery:active .ic svg { transform: scale(1.15); }
+.bigtile.board:active .ic svg { transform: rotate(-10deg); }
+.bigtile.roster:active .ic svg { transform: scale(1.12); }
+.bigtile.pairings:active .ic svg { transform: scale(1.1); }
+.bigtile.code:active .ic svg { transform: rotate(-14deg); }
 @keyframes spin { to { transform: rotate(360deg); } }
 .bigtile .bt-txt { margin-top: auto; }
 .bigtile b { font-size: 16.5px; color: var(--ink); }

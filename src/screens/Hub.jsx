@@ -55,13 +55,13 @@ export default function Hub() {
         <div className="tilepair">
           <button className="bigtile board" onClick={() => go("board", { code: t.code })}>
             <div className="ic">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 21V4l11 3-4 3 4 3-11 3" /></svg>
+              <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 21V4l11 3-4 3 4 3-11 3" /></svg>
             </div>
             <div className="bt-txt"><b>Live board</b><p>See the score & play</p></div>
           </button>
           <button className="bigtile roster" onClick={() => go("roster", { code: t.code })}>
             <div className="ic">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="3" /><path d="M3.5 20a5.5 5.5 0 0 1 11 0" /><path d="M16 6a3 3 0 0 1 0 6M21 20a5 5 0 0 0-4-4.9" /></svg>
+              <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="8" r="3" /><path d="M3.5 20a5.5 5.5 0 0 1 11 0" /><path d="M16 6a3 3 0 0 1 0 6M21 20a5 5 0 0 0-4-4.9" /></svg>
             </div>
             <div className="bt-txt"><b>Roster</b><p>{t.roster.length} players · {ca}/{cb}</p></div>
           </button>
@@ -69,13 +69,13 @@ export default function Hub() {
         <div className="tilepair" style={{ marginTop: 11 }}>
           <button className="bigtile pairings" onClick={() => go("pairings", { code: t.code })}>
             <div className="ic">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h6v14H4zM14 5h6v14h-6" /><path d="M10 12h4" /></svg>
+              <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><path d="M4 5h6v14H4zM14 5h6v14h-6" /><path d="M10 12h4" /></svg>
             </div>
             <div className="bt-txt"><b>Pairings</b><p>{setM} of {totM} set</p></div>
           </button>
           <button className="bigtile code" onClick={copyCode}>
             <div className="ic">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="15" r="4" /><path d="M10.8 12.2 19 4M16 7l3 .5M14 9l2.5 .5" /></svg>
+              <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="15" r="4" /><path d="M10.8 12.2 19 4M16 7l3 .5M14 9l2.5 .5" /></svg>
             </div>
             <div className="bt-txt">
               <b style={{ fontSize: 23, letterSpacing: ".1em" }}>{t.code}</b>

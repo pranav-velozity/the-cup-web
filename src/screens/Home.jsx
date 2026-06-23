@@ -105,13 +105,13 @@ export default function Home() {
         <div className="tilepair">
           <button className="bigtile create" onClick={() => go("create")}>
             <div className="ic">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+              <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
             </div>
             <div className="bt-txt"><b>Create</b><p>Start a tournament</p></div>
           </button>
           <button className="bigtile join" onClick={() => go("join")}>
             <div className="ic">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><path d="M10 17l5-5-5-5M15 12H3" /></svg>
+              <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><path d="M10 17l5-5-5-5M15 12H3" /></svg>
             </div>
             <div className="bt-txt"><b>Join</b><p>Enter a code to play</p></div>
           </button>
@@ -119,14 +119,14 @@ export default function Home() {
         <div className="tilepair" style={{ marginTop: 11 }}>
           <button className={`bigtile alerts${unseen ? " unread" : ""}`} onClick={() => go("notifs")}>
             <div className="ic" style={{ position: "relative" }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg>
+              <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg>
               {unseen && <span style={{ position: "absolute", top: -3, right: -3, width: 9, height: 9, borderRadius: "50%", background: "#D9534F", border: "2px solid #fff" }} />}
             </div>
             <div className="bt-txt"><b>Alerts</b><p>Match updates & news</p></div>
           </button>
           <button className="bigtile gallery" onClick={() => go("gallery")}>
             <div className="ic">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="9" cy="9" r="1.6" /><path d="M21 15l-5-5L5 21" /></svg>
+              <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="9" cy="9" r="1.6" /><path d="M21 15l-5-5L5 21" /></svg>
             </div>
             <div className="bt-txt"><b>Gallery</b><p>Photos from the round</p></div>
           </button>
@@ -163,7 +163,7 @@ export default function Home() {
             Designed by Pranav
             <span style={{ height: 1, width: 22, background: "linear-gradient(90deg, #D9C38A, transparent)" }} />
           </div>
-          <div style={{ fontSize: 9, color: "var(--mut)", opacity: .45, marginTop: 3, letterSpacing: ".14em" }}>TOTO · v1.2</div>
+          <div style={{ fontSize: 9, color: "var(--mut)", opacity: .45, marginTop: 3, letterSpacing: ".14em" }}>TOTO · v1.3</div>
         </div>
       </div>
     </div>
