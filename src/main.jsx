@@ -43,6 +43,22 @@ createRoot(document.getElementById("root")).render(
 // Register the service worker (PWA install + offline shell + push).
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
+    navigator.serviceWorker.register("/sw.js").then((reg) => {
+      // Re-check for a new version whenever the app is reopened/focused —
+      // important for installed PWAs (esp. iOS) that stay "open" for days.
+      const check = () => { if (document.visibilityState === "visible") reg.update().catch(() => {}); };
+      document.addEventListener("visibilitychange", check);
+      window.addEventListener("focus", check);
+      setInterval(check, 60 * 60 * 1000);
+    }).catch(() => {});
+
+    // When a new service worker takes control, reload once so the fresh
+    // assets are actually shown (no more "close all tabs" dance).
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (reloaded) return;
+      reloaded = true;
+      window.location.reload();
+    });
   });
 }

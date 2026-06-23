@@ -112,6 +112,13 @@ body {
 .bigtile.join .ic { background: linear-gradient(135deg, #D4B05A, #C8A24C); }
 .bigtile.alerts .ic { background: linear-gradient(135deg, #2FA4B0, #0E7C86); }
 .bigtile.gallery .ic { background: linear-gradient(135deg, #9A6BAA, #7E4D8B); }
+.bigtile.board .ic { background: linear-gradient(135deg, #3E9D6C, #2E7D5B); }
+.bigtile.roster .ic { background: linear-gradient(135deg, #2FA4B0, #0E7C86); }
+.bigtile.pairings .ic { background: linear-gradient(135deg, #9A6BAA, #7E4D8B); }
+.bigtile.code { background: #FBF4E2; border-color: #EAD9A8; }
+.bigtile.code .ic { background: linear-gradient(135deg, #D4B05A, #C8A24C); }
+.bigtile.code b { color: #9A7A1F; }
+.bigtile.code p { color: #9A7A1F; opacity: .8; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .bigtile .bt-txt { margin-top: auto; }
 .bigtile b { font-size: 16.5px; color: var(--ink); }
