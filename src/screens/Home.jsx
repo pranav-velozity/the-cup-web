@@ -147,7 +147,7 @@ export default function Home() {
             Designed by Pranav
             <span style={{ height: 1, width: 22, background: "linear-gradient(90deg, #D9C38A, transparent)" }} />
           </div>
-          <div style={{ fontSize: 9, color: "var(--mut)", opacity: .45, marginTop: 3, letterSpacing: ".14em" }}>TOTO · v0.8</div>
+          <div style={{ fontSize: 9, color: "var(--mut)", opacity: .45, marginTop: 3, letterSpacing: ".14em" }}>TOTO · v0.9</div>
         </div>
       </div>
     </div>

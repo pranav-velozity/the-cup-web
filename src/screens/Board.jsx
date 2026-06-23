@@ -59,47 +59,85 @@ export default function Board() {
   const teamB = { name: B.name, color: B.color, emoji: B.emoji, kind: B.kind, logoUrl: B.logoUrl };
   const labels = { tight: "TIGHT", tied: "TIED", ahead: "AHEAD", final: "FINAL" };
 
-  const tile = (m) => (
-    <div key={m.id} className={`mtile${flash[m.id] ? " justchanged" : ""}`}
-      onClick={() => go("entry", { code, entry: { matchId: m.id, hole: nextHole(m.holes) } })}>
-      <div className={`tstat${m.status === "tight" ? " breathe" : ""}`}>{labels[m.status]}</div>
-      <div className="tilescore">
-        <div className="tnameT" style={{ color: A.color, fontWeight: m.a >= m.b ? 700 : 600 }}>{m.nameA}</div>
-        <div className={`tnum${flash[m.id] ? " numrefresh" : ""}`}>{m.pointsA}–{m.pointsB}</div>
-        <div className="tnameT" style={{ color: B.color, fontWeight: m.b >= m.a ? 700 : 600 }}>{m.nameB}</div>
-      </div>
-      <div className="tmeta">
-        Day {m.dayIndex + 1} · {m.format === "scramble" ? "Scramble" : "Singles"}
-        {m.done ? " · done" : ` · thru ${m.played}`}
-      </div>
-      {!m.done && m.played > 0 && (
-        <span className="livedot" title="Live" style={{ position: "absolute", top: 9, right: 9 }} />
-      )}
-      {m.hot && <span className="hot" style={{ position: "absolute", bottom: 7, right: 8, fontSize: 9 }}>
-        <span style={{ display: "inline-block", width: 5, height: 5, borderRadius: "50%",
-          background: m.hot === "A" ? A.color : B.color, marginRight: 4, verticalAlign: 1 }} />HOT</span>}
-    </div>
-  );
+  // Which side leads the match (by holes won), with display fields oriented
+  // leader-first. null => all square.
+  const leadInfo = (m) => {
+    if (m.a === m.b) return null;
+    const side = m.a > m.b ? "A" : "B";
+    return {
+      side,
+      team: side === "A" ? teamA : teamB,
+      topName: side === "A" ? m.nameA : m.nameB,
+      topColor: side === "A" ? A.color : B.color,
+      topPts: side === "A" ? m.pointsA : m.pointsB,
+      botName: side === "A" ? m.nameB : m.nameA,
+      botColor: side === "A" ? B.color : A.color,
+      botPts: side === "A" ? m.pointsB : m.pointsA,
+    };
+  };
 
-  const row = (m) => (
-    <div key={m.id} className={`mcard${flash[m.id] ? " justchanged" : ""}`}
-      onClick={() => go("entry", { code, entry: { matchId: m.id, hole: nextHole(m.holes) } })}>
-      <div className={`spine s-${m.status}`}>{labels[m.status]}</div>
-      <div className="mbody">
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ flex: 1, fontSize: 13.5, color: A.color, fontWeight: m.a >= m.b ? 700 : 500 }}>{m.nameA}</span>
-          <b className={flash[m.id] ? "numrefresh" : ""} style={{ fontSize: 17 }}>{m.pointsA}–{m.pointsB}</b>
-          <span style={{ flex: 1, textAlign: "right", fontSize: 13.5, color: B.color, fontWeight: m.b >= m.a ? 700 : 500 }}>{m.nameB}</span>
+  const tile = (m) => {
+    const L = leadInfo(m);
+    const live = !m.done && m.played > 0;
+    const topName = L ? L.topName : m.nameA, topColor = L ? L.topColor : A.color;
+    const botName = L ? L.botName : m.nameB, botColor = L ? L.botColor : B.color;
+    const leftPts = L ? L.topPts : m.pointsA, rightPts = L ? L.botPts : m.pointsB;
+    return (
+      <div key={m.id} className={`mtile${flash[m.id] ? " justchanged" : ""}`}
+        onClick={() => go("entry", { code, entry: { matchId: m.id, hole: nextHole(m.holes) } })}>
+        <div className="tlead">
+          <div className="tlead-team">
+            {L ? (<><Avatar team={L.team} size={20} /><span className="tlead-name" style={{ color: L.topColor }}>{L.team.name}</span></>)
+              : <span className="tlead-name" style={{ color: "var(--mut)" }}>{m.done ? "Halved" : "All square"}</span>}
+          </div>
+          <div className="tlead-stat">
+            {live && <span className="livedot" title="Live" />}
+            <span className={`tstat-in${m.status === "tight" ? " breathe" : ""}`}>{labels[m.status]}</span>
+          </div>
         </div>
-        <div className="muted" style={{ fontSize: 11, marginTop: 4, textAlign: "center" }}>
-          Day {m.dayIndex + 1} · {m.format === "scramble" ? "Scramble" : "Singles"}{m.done ? " · done" : ` · thru ${m.played}`}
+        <div className="tilescore">
+          <div className="tnameT" style={{ color: topColor, fontWeight: 700 }}>{topName}</div>
+          <div className={`tnum${flash[m.id] ? " numrefresh" : ""}`}>{leftPts}–{rightPts}</div>
+          <div className="tnameT" style={{ color: botColor, fontWeight: 600 }}>{botName}</div>
         </div>
+        <div className="tmeta">
+          Day {m.dayIndex + 1} · {m.format === "scramble" ? "Scramble" : "Singles"}
+          {m.done ? " · done" : ` · thru ${m.played}`}
+        </div>
+        {m.hot && <span className="hot" style={{ position: "absolute", bottom: 7, right: 8, fontSize: 9 }}>
+          <span style={{ display: "inline-block", width: 5, height: 5, borderRadius: "50%",
+            background: m.hot === "A" ? A.color : B.color, marginRight: 4, verticalAlign: 1 }} />HOT</span>}
       </div>
-      {!m.done && m.played > 0 && (
-        <span className="livedot" title="Live" style={{ position: "absolute", top: 9, right: 9 }} />
-      )}
-    </div>
-  );
+    );
+  };
+
+  const row = (m) => {
+    const L = leadInfo(m);
+    const live = !m.done && m.played > 0;
+    const leftName = L ? L.topName : m.nameA, leftColor = L ? L.topColor : A.color, leftPts = L ? L.topPts : m.pointsA;
+    const rightName = L ? L.botName : m.nameB, rightColor = L ? L.botColor : B.color, rightPts = L ? L.botPts : m.pointsB;
+    return (
+      <div key={m.id} className={`mcard${flash[m.id] ? " justchanged" : ""}`}
+        onClick={() => go("entry", { code, entry: { matchId: m.id, hole: nextHole(m.holes) } })}>
+        <div className={`spine s-${m.status}`}>{labels[m.status]}</div>
+        <div className="mbody">
+          <div className="mlead">
+            {L ? (<><Avatar team={L.team} size={16} /><span style={{ color: L.topColor, fontWeight: 800, fontSize: 11.5 }}>{L.team.name} leads</span></>)
+              : <span className="muted" style={{ fontSize: 11.5, fontWeight: 700 }}>{m.done ? "Halved" : "All square"}</span>}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ flex: 1, fontSize: 13.5, color: leftColor, fontWeight: 700 }}>{leftName}</span>
+            <b className={flash[m.id] ? "numrefresh" : ""} style={{ fontSize: 17 }}>{leftPts}–{rightPts}</b>
+            <span style={{ flex: 1, textAlign: "right", fontSize: 13.5, color: rightColor, fontWeight: 500 }}>{rightName}</span>
+          </div>
+          <div className="muted" style={{ fontSize: 11, marginTop: 4, textAlign: "center" }}>
+            Day {m.dayIndex + 1} · {m.format === "scramble" ? "Scramble" : "Singles"}{m.done ? " · done" : ` · thru ${m.played}`}
+          </div>
+        </div>
+        {live && <span className="livedot" title="Live" style={{ position: "absolute", top: 9, right: 9 }} />}
+      </div>
+    );
+  };
 
   return (
     <div className="screen">
