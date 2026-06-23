@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
+import { useUser } from "@clerk/clerk-react";
 import { useApi } from "../api.js";
 import { useNav } from "../store.jsx";
 import { useLiveBoard } from "../lib/useSocket.js";
@@ -6,6 +7,7 @@ import { Bar, Avatar, Spinner } from "../components.jsx";
 
 export default function Board() {
   const api = useApi();
+  const { user } = useUser();
   const { code, go, back } = useNav();
   const [board, setBoard] = useState(null);
   const [view, setView] = useState("tile");
@@ -38,6 +40,12 @@ export default function Board() {
   if (!board) return (<div className="screen"><Bar title="Tournament" onBack={back} /><Spinner /></div>);
 
   const A = board.teamA, B = board.teamB;
+
+  // "Your match" quick-link: prefer an unfinished match the user is in.
+  const mineIds = board.yourMatchIds || [];
+  const mine = board.matches.find((m) => mineIds.includes(m.id) && !m.done)
+    || board.matches.find((m) => mineIds.includes(m.id));
+  const first = user?.firstName;
   const teamA = { name: A.name, color: A.color, emoji: A.emoji, kind: A.kind, logoUrl: A.logoUrl };
   const teamB = { name: B.name, color: B.color, emoji: B.emoji, kind: B.kind, logoUrl: B.logoUrl };
   const labels = { tight: "TIGHT", tied: "TIED", ahead: "AHEAD", final: "FINAL" };
@@ -82,11 +90,23 @@ export default function Board() {
     <div className="screen">
       <Bar title="Home" onBack={back} />
       <div className="pad">
-        <div className="h1">Live board</div>
-        <p className="sub" style={{ display: "flex", alignItems: "center", gap: 7 }}>
-          {board.live ? <><span className="livedot" /><span style={{ color: "#16A34A", fontWeight: 700, fontSize: 11.5, letterSpacing: ".12em" }}>LIVE</span></>
-            : <span style={{ color: "var(--mut)", fontWeight: 700, fontSize: 11.5, letterSpacing: ".12em" }}>FINAL</span>}
-        </p>
+        <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="h1">Live board</div>
+            <p className="sub" style={{ display: "flex", alignItems: "center", gap: 7, margin: 0 }}>
+              {board.live ? <><span className="livedot" /><span style={{ color: "#16A34A", fontWeight: 700, fontSize: 11.5, letterSpacing: ".12em" }}>LIVE</span></>
+                : <span style={{ color: "var(--mut)", fontWeight: 700, fontSize: 11.5, letterSpacing: ".12em" }}>FINAL</span>}
+            </p>
+          </div>
+          {mine && (
+            <button className="mpill" style={{ marginTop: 2, flex: "0 0 auto" }}
+              onClick={() => go("entry", { code, entry: { matchId: mine.id, hole: nextHole(mine.holes) } })}>
+              <span className="livedot" style={{ marginRight: 7 }} />
+              {first ? `${first}'s match` : "Your match"}
+              <span style={{ opacity: .55, fontSize: 16, marginLeft: 3 }}>›</span>
+            </button>
+          )}
+        </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 6 }}>
           <div className="crestwrap"><Avatar team={teamA} size={44} />

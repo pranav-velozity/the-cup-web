@@ -94,14 +94,20 @@ export default function Home() {
 
         <InstallPrompt />
 
-        <button className="act" onClick={() => go("create")}>
-          <b>＋ Create a tournament</b>
-          <p>Redeem a gate pass and set up your match.</p>
-        </button>
-        <button className="act" onClick={() => go("join")}>
-          <b>▶ Join with a code</b>
-          <p>Enter a tournament code to play and score.</p>
-        </button>
+        <div className="tilepair">
+          <button className="bigtile create" onClick={() => go("create")}>
+            <div className="ic">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+            </div>
+            <div className="bt-txt"><b>Create</b><p>Start a tournament</p></div>
+          </button>
+          <button className="bigtile join" onClick={() => go("join")}>
+            <div className="ic">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><path d="M10 17l5-5-5-5M15 12H3" /></svg>
+            </div>
+            <div className="bt-txt"><b>Join</b><p>Enter a code to play</p></div>
+          </button>
+        </div>
 
         <div className="lab" style={{ marginTop: 18 }}>Your tournaments</div>
         {tournaments === null ? <Spinner /> :
@@ -128,7 +134,7 @@ export default function Home() {
           </>
         )}
 
-        <div className="help" style={{ textAlign: "center", marginTop: 24, opacity: .6 }}>TOTO · build v0.5</div>
+        <div className="help" style={{ textAlign: "center", marginTop: 24, opacity: .6 }}>TOTO · build v0.6</div>
       </div>
     </div>
   );
