@@ -13,6 +13,7 @@ import Roster from "./screens/Roster.jsx";
 import Pairings from "./screens/Pairings.jsx";
 import Board from "./screens/Board.jsx";
 import Entry from "./screens/Entry.jsx";
+import Notifications from "./screens/Notifications.jsx";
 
 function Shell() {
   const { screen, go, reset } = useNav();
@@ -22,7 +23,7 @@ function Shell() {
   const screens = {
     home: <Home />, create: <Create />, join: <Join />, admin: <Admin />,
     hub: <Hub />, roster: <Roster />, pairings: <Pairings />,
-    board: <Board />, entry: <Entry />,
+    board: <Board />, entry: <Entry />, notifs: <Notifications />,
   };
   const showNav = ["home", "hub", "board"].includes(screen);
 

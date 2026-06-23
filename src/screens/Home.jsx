@@ -5,6 +5,7 @@ import { useNav } from "../store.jsx";
 import { Spinner } from "../components.jsx";
 import InstallPrompt from "../components/InstallPrompt.jsx";
 import { soundOn, setSoundOn } from "../lib/sound.js";
+import { hasUnseen } from "./Notifications.jsx";
 
 // Swipe a tournament left to reveal Delete (organizer owns everything here).
 function TournamentRow({ t, onOpen, onDelete }) {
@@ -41,6 +42,7 @@ export default function Home() {
   const [joined, setJoined] = useState([]);
   const [err, setErr] = useState(null);
   const [snd, setSnd] = useState(soundOn());
+  const [unseen, setUnseen] = useState(false);
   const first = user?.firstName || "there";
 
   const toggleSound = () => { const v = !snd; setSoundOn(v); setSnd(v); };
@@ -52,6 +54,9 @@ export default function Home() {
     api("/api/player/tournaments")
       .then((rows) => setJoined(rows || []))
       .catch(() => setJoined([]));
+    api("/api/player/notifications")
+      .then((feed) => setUnseen(hasUnseen(feed)))
+      .catch(() => {});
   }, [api]);
 
   useEffect(() => { load(); }, [load]);
@@ -66,7 +71,12 @@ export default function Home() {
     <div className="screen">
       <div className="bar">
         <span style={{ fontWeight: 700 }}>Home</span>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <button onClick={() => go("notifs")} title="Notifications"
+            style={{ background: "none", border: "none", cursor: "pointer", color: "#1B2A22", padding: 0, display: "flex", position: "relative" }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg>
+            {unseen && <span style={{ position: "absolute", top: -2, right: -2, width: 8, height: 8, borderRadius: "50%", background: "#D9534F", border: "1.5px solid #F3F6F0" }} />}
+          </button>
           <button onClick={toggleSound} title={snd ? "Sound on" : "Sound off"}
             style={{ background: "none", border: "none", cursor: "pointer", color: snd ? "#2E7D5B" : "#9aa394", padding: 0, display: "flex" }}>
             {snd ? (
@@ -118,7 +128,7 @@ export default function Home() {
           </>
         )}
 
-        <div className="help" style={{ textAlign: "center", marginTop: 24, opacity: .6 }}>TOTO · build v0.4</div>
+        <div className="help" style={{ textAlign: "center", marginTop: 24, opacity: .6 }}>TOTO · build v0.5</div>
       </div>
     </div>
   );
