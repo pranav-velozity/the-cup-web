@@ -69,14 +69,15 @@ export default function Create() {
   }
 
   if (step === "request") {
-    const getCode = async () => {
+    const submit = async () => {
       if (!reqName.trim()) { setErr("Please enter your name first."); return; }
       setBusy(true); setErr(null);
       try {
         const res = await api("/api/organizer/request-access", {
           method: "POST", body: JSON.stringify({ name: reqName.trim() }),
         });
-        setCode(res.code); setStep("issued");
+        if (res.code) { setCode(res.code); setStep("issued"); }   // free-for-all
+        else setStep("requested");                                 // needs approval
       } catch (e) { setErr(e.message); }
       setBusy(false);
     };
@@ -85,11 +86,11 @@ export default function Create() {
         <Bar title="Home" onBack={() => { setErr(null); setStep("pass"); }} />
         <div className="pad">
           <div className="h1">Request access</div>
-          <p className="sub">Pop your name in and we'll generate a gate pass for you.</p>
+          <p className="sub">Pop your name in to get a gate pass.</p>
           {err && <div className="ban err">{err}</div>}
           <div className="field"><label className="lab">Your name</label>
             <input className="inp" placeholder="e.g. Priya Shah" value={reqName} onChange={(e) => setReqName(e.target.value)} /></div>
-          <button className="btn grn" onClick={getCode} disabled={busy}>{busy ? "Generating…" : "Get my code ›"}</button>
+          <button className="btn grn" onClick={submit} disabled={busy}>{busy ? "Sending…" : "Continue ›"}</button>
           <button className="linkbtn" style={{ marginTop: 14 }} onClick={() => { setErr(null); setStep("pass"); }}>‹ Back to gate pass</button>
         </div>
       </div>
@@ -104,8 +105,24 @@ export default function Create() {
           <div className="h1">You're in ✨</div>
           <p className="sub">Here's your gate pass — it's yours to keep.</p>
           <div className="codecard"><div className="muted" style={{ textAlign: "center", fontSize: 12, marginBottom: 4 }}>Your code</div><div className="bigcode">{code}</div></div>
-          <p className="help" style={{ textAlign: "center" }}>An admin can see your request by name.</p>
           <button className="btn grn" onClick={() => { setErr(null); setStep("wizard"); setPage(1); }}>Start setup ›</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "requested") {
+    return (
+      <div className="screen">
+        <Bar title="Home" onBack={back} />
+        <div className="pad">
+          <div className="h1">Request sent 📨</div>
+          <p className="sub">An admin has been notified. You'll get an alert with your access code as soon as it's approved — then come back here and enter it.</p>
+          <div style={{ background: "#FBF6E8", border: "1px solid #ECDDB2", borderRadius: 14, padding: 16, textAlign: "center", color: "#9A7A1F", marginTop: 4 }}>
+            <div style={{ fontSize: 34 }}>⏳</div>
+            <p style={{ fontSize: 13, marginTop: 6 }}>Waiting for approval</p>
+          </div>
+          <button className="btn ghost" style={{ marginTop: 16 }} onClick={() => { setErr(null); setStep("pass"); }}>‹ Back to gate pass</button>
         </div>
       </div>
     );

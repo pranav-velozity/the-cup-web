@@ -5,7 +5,7 @@ import { Bar, Spinner } from "../components.jsx";
 import { enablePush, notifGranted, pushSupported } from "../lib/push.js";
 
 const SEEN = "toto-notifs-seen";
-const ICON = { match_final: "🏁", lead_change: "🔄", day_end: "📅", hole_won: "⛳" };
+const ICON = { match_final: "🏁", lead_change: "🔄", day_end: "📅", hole_won: "⛳", pass_request: "📨", pass_approved: "✅", pass_rejected: "⛔" };
 
 function timeAgo(iso) {
   const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
@@ -79,7 +79,7 @@ export default function Notifications() {
             <div style={{ flex: 1 }}>
               <b style={{ fontSize: 13.5 }}>{n.title}</b>
               <div style={{ fontSize: 12.5, color: "var(--mut)", marginTop: 1 }}>{n.body}</div>
-              <div style={{ fontSize: 11, color: "#9aa394", marginTop: 3 }}>{n.tournament_name} · {timeAgo(n.created_at)}</div>
+              <div style={{ fontSize: 11, color: "#9aa394", marginTop: 3 }}>{n.tournament_name ? `${n.tournament_name} · ` : ""}{timeAgo(n.created_at)}</div>
             </div>
           </div>
         ))}
