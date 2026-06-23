@@ -65,6 +65,10 @@ export default function Entry() {
   const A = board.teamA, B = board.teamB;
   const s = mscore(holes);
 
+  // You may only score a match you're in (or any match if you're the organizer).
+  // Viewers reach this screen read-only; the server enforces the same rule.
+  const editable = !!(board.canScoreAll || (board.yourMatchIds || []).includes(matchId));
+
   // Optimistic team totals: latest board, with THIS match's local score swapped in.
   let totA = 0, totB = 0;
   for (const mm of board.matches) {
@@ -73,6 +77,7 @@ export default function Entry() {
   }
 
   const tap = async (r) => {
+    if (!editable) return;
     const next = holes.slice();
     next[sel] = next[sel] === r ? null : r;
     setHoles(next);
@@ -100,6 +105,11 @@ export default function Entry() {
 
         {!online && <div className="offline" style={{ marginTop: 10 }}>📡 Offline — scores are saved on your phone and will sync when you're back. {pending} waiting.</div>}
         {online && pending > 0 && <div className="offline" style={{ marginTop: 10 }}>Syncing {pending}…</div>}
+        {!editable && (
+          <div className="ban" style={{ marginTop: 10, background: "#EEF1EC", color: "#5a6b5f" }}>
+            👀 View only — you're not playing in this match, so you can't change its score.
+          </div>
+        )}
 
         <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "12px 0 6px" }}>
           <Avatar team={{ name: A.name, color: A.color }} size={40} />
@@ -120,13 +130,15 @@ export default function Entry() {
         </div>
 
         <div style={{ textAlign: "center", fontWeight: 800, fontSize: 18, margin: "6px 0 10px" }}>Hole {sel + 1}</div>
-        <div style={{ display: "flex", gap: 9 }}>
-          <button className="bigbtn" style={{ background: A.color }} onClick={() => tap("A")}>{shortName(m.nameA)}</button>
-          <button className="bigbtn" style={{ background: "#C4CABD", color: "#1B2A22" }} onClick={() => tap("T")}>Tie</button>
-          <button className="bigbtn" style={{ background: B.color }} onClick={() => tap("B")}>{shortName(m.nameB)}</button>
+        <div style={{ display: "flex", gap: 9, opacity: editable ? 1 : .4, pointerEvents: editable ? "auto" : "none" }}>
+          <button className="bigbtn" style={{ background: A.color }} onClick={() => tap("A")} disabled={!editable}>{shortName(m.nameA)}</button>
+          <button className="bigbtn" style={{ background: "#C4CABD", color: "#1B2A22" }} onClick={() => tap("T")} disabled={!editable}>Tie</button>
+          <button className="bigbtn" style={{ background: B.color }} onClick={() => tap("B")} disabled={!editable}>{shortName(m.nameB)}</button>
         </div>
         <div className="help" style={{ textAlign: "center", marginTop: 10 }}>
-          Tap a winner — it auto-jumps to the next hole. Tap the same one again to clear.
+          {editable
+            ? "Tap a winner — it auto-jumps to the next hole. Tap the same one again to clear."
+            : "You can follow this match live, but only players in it (or the organizer) can enter scores."}
         </div>
 
         <div style={{ borderTop: "1px solid var(--line)", marginTop: 16, paddingTop: 14, textAlign: "center" }}>

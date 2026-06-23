@@ -92,7 +92,7 @@ export default function Home() {
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 5 6 9H2v6h4l5 4z" /><path d="M22 9l-6 6M16 9l6 6" /></svg>
             )}
           </button>
-          <span className="wordmark">TOTO</span>
+          <img src="/icons/logo.png" alt="TOTO" className="barlogo" />
         </div>
       </div>
       <div className="pad">
@@ -141,7 +141,14 @@ export default function Home() {
           </>
         )}
 
-        <div className="help" style={{ textAlign: "center", marginTop: 24, opacity: .6 }}>TOTO · build v0.7</div>
+        <div style={{ textAlign: "center", marginTop: 28, marginBottom: 4 }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 7, color: "#B68A2E", fontWeight: 700, fontSize: 12.5, letterSpacing: ".03em" }}>
+            <span style={{ height: 1, width: 22, background: "linear-gradient(90deg, transparent, #D9C38A)" }} />
+            Designed by Pranav
+            <span style={{ height: 1, width: 22, background: "linear-gradient(90deg, #D9C38A, transparent)" }} />
+          </div>
+          <div style={{ fontSize: 9, color: "var(--mut)", opacity: .45, marginTop: 3, letterSpacing: ".14em" }}>TOTO · v0.8</div>
+        </div>
       </div>
     </div>
   );

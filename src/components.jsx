@@ -25,7 +25,7 @@ export function Bar({ title, onBack }) {
       ) : (
         <span style={{ fontWeight: 700 }}>{title}</span>
       )}
-      <span className="wordmark">TOTO</span>
+      <img src="/icons/logo.png" alt="TOTO" className="barlogo" />
     </div>
   );
 }

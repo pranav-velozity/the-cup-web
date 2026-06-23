@@ -59,6 +59,7 @@ body {
 .bar .back { background: none; border: none; font: inherit; color: var(--ink);
   font-weight: 700; font-size: 15px; cursor: pointer; display: flex; gap: 4px; align-items: center; }
 .wordmark { font-weight: 800; letter-spacing: -.02em; font-size: 18px; }
+.barlogo { width: 28px; height: 28px; border-radius: 8px; display: block; }
 
 /* type */
 .h1 { font-size: 23px; font-weight: 800; letter-spacing: -.01em; margin: 0 0 2px; }

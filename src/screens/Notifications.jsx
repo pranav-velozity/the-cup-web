@@ -60,6 +60,16 @@ export default function Notifications() {
           </div>
         )}
 
+        {granted && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, background: "#EAF6EF", border: "1px solid #CdE8D8", borderRadius: 12, padding: "10px 12px", marginBottom: 14 }}>
+            <span className="livedot" style={{ background: "#2F8A5E" }} />
+            <span style={{ fontSize: 12.5, color: "#2F6B4C", fontWeight: 600, flex: 1 }}>Notifications on for this device</span>
+            <button className="linkbtn" style={{ width: "auto", padding: "2px 4px", fontSize: 12 }} onClick={turnOn} disabled={busy}>
+              {busy ? "…" : "Re-register"}
+            </button>
+          </div>
+        )}
+
         <div className="lab">Recent</div>
         {feed === null ? <Spinner /> : feed.length === 0 ? (
           <p className="muted" style={{ fontSize: 13 }}>Nothing yet — updates will show up here as matches play out.</p>

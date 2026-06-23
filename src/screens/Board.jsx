@@ -13,8 +13,17 @@ export default function Board() {
   const [view, setView] = useState("tile");
   const [flash, setFlash] = useState({});
   const prevScores = useRef({});
+  const mineRef = useRef({ yourMatchIds: [], canScoreAll: false });
 
   const applyBoard = useCallback((b) => {
+    // Live socket broadcasts are per-tournament and don't carry the per-user
+    // fields the initial fetch does — carry them forward so the "your match"
+    // pill doesn't flicker out on every update.
+    if (b.yourMatchIds !== undefined) mineRef.current.yourMatchIds = b.yourMatchIds;
+    else b.yourMatchIds = mineRef.current.yourMatchIds;
+    if (b.canScoreAll !== undefined) mineRef.current.canScoreAll = b.canScoreAll;
+    else b.canScoreAll = mineRef.current.canScoreAll;
+
     // Detect which matches changed score -> flash them once.
     const f = {};
     for (const m of b.matches) {
