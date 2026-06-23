@@ -11,10 +11,14 @@ export const T = {
   tie: "#C4CABD",
 };
 
-// Swatch palette for team colour picking (on-brand).
+// Swatch palette for team colors — a tight, distinct set (no near-duplicates).
 export const SWATCHES = [
-  "#2E7D5B", "#3E9D6C", "#1B6E48", "#B68A2E", "#C8A24C",
-  "#0E7C86", "#7E4D8B", "#5B7553", "#3A4A40", "#9A6B3F",
+  "#2E7D5B", // green
+  "#C8A24C", // gold
+  "#0E7C86", // teal
+  "#7E4D8B", // plum
+  "#B5562F", // terracotta
+  "#3A4A40", // slate
 ];
 
 export const EMOJI = ["⛳","🦅","🦈","🐅","🐂","🦁","🐍","🐺","🔥","⚡","🐧","🏌️"];

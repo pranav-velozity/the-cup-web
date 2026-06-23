@@ -117,6 +117,8 @@ export default function Home() {
             ))}
           </>
         )}
+
+        <div className="help" style={{ textAlign: "center", marginTop: 24, opacity: .6 }}>TOTO · build v0.4</div>
       </div>
     </div>
   );

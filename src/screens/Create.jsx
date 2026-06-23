@@ -175,44 +175,75 @@ export default function Create() {
         {page === 2 && (
           <>
             <div className="h1">Team identity</div>
-            <p className="sub">Give each side a colour.</p>
+            <p className="sub">Pick a look for each side — tap a tile to flip it.</p>
             {[["A", a, setA], ["B", b, setB]].map(([k, tm, set]) => (
-              <div key={k} style={{ border: "1px solid var(--line)", background: "#fff", borderRadius: 16, padding: 14, marginBottom: 12 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 11 }}>
-                  <div className="crest" style={{ width: 42, height: 42, background: tm.color, fontSize: 18, overflow: "hidden" }}>
+              <div key={k} style={{ border: "1px solid var(--line)", background: "#fff", borderRadius: 16, padding: 14, marginBottom: 12, boxShadow: "0 2px 10px rgba(27,42,34,.05)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 12 }}>
+                  <div className="crest" style={{ width: 44, height: 44, background: tm.color, fontSize: 18, overflow: "hidden" }}>
                     {tm.kind === "logo" && tm.logoUrl ? <img src={tm.logoUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       : tm.kind === "emoji" && tm.emoji ? <span style={{ fontSize: 22 }}>{tm.emoji}</span>
                       : (tm.name || "T").split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
                   </div>
                   <b style={{ fontSize: 15 }}>{tm.name}</b>
                 </div>
-                <div className="seg">
-                  <button className={tm.kind === "crest" ? "on" : ""} onClick={() => set({ ...tm, kind: "crest" })}>Crest</button>
-                  <button className={tm.kind === "emoji" ? "on" : ""} onClick={() => set({ ...tm, kind: "emoji" })}>Emoji</button>
-                  <button className={tm.kind === "logo" ? "on" : ""} onClick={() => set({ ...tm, kind: "logo" })}>Logo</button>
+
+                <div className="kindrow">
+                  {[
+                    ["crest", "Crest", <path key="c" d="M12 3l7 3v5c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6z" />],
+                    ["emoji", "Emoji", <><circle key="o" cx="12" cy="12" r="9" /><path key="m" d="M8.5 14a4 4 0 0 0 7 0" /><circle key="e1" cx="9" cy="10" r=".6" fill="currentColor" /><circle key="e2" cx="15" cy="10" r=".6" fill="currentColor" /></>],
+                    ["logo", "Logo", <><rect key="r" x="3" y="3" width="18" height="18" rx="3" /><path key="p" d="M3 16l5-5 4 4 3-3 6 6" /></>],
+                  ].map(([kind, label, icon]) => (
+                    <div key={kind} className={`kindtile${tm.kind === kind ? " on" : ""}`} onClick={() => set({ ...tm, kind })}>
+                      <div className="kindtile-inner">
+                        <div className="kindtile-face">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{icon}</svg>
+                          {label}
+                        </div>
+                        <div className="kindtile-face kindtile-back">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+                          {label}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
+
+                {tm.kind === "crest" && (
+                  <>
+                    <div className="lab">Team color</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 9 }}>
+                      {SWATCHES.map((s) => (
+                        <button key={s} onClick={() => set({ ...tm, color: s })}
+                          style={{ width: 38, height: 38, borderRadius: 10, border: "none", background: s, cursor: "pointer", outline: tm.color === s ? "3px solid #1B2A22" : "none", outlineOffset: 2 }} />
+                      ))}
+                    </div>
+                  </>
+                )}
                 {tm.kind === "emoji" && (
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginBottom: 10 }}>
-                    {EMOJI.map((e) => (
-                      <button key={e} onClick={() => set({ ...tm, emoji: e })}
-                        style={{ width: 38, height: 38, fontSize: 20, borderRadius: 10, cursor: "pointer",
-                          border: tm.emoji === e ? "2px solid #3E9D6C" : "1px solid var(--line)", background: tm.emoji === e ? "#E9F6EF" : "#fff" }}>{e}</button>
-                    ))}
-                  </div>
+                  <>
+                    <div className="lab">Pick an emoji</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                      {EMOJI.map((e) => (
+                        <button key={e} onClick={() => set({ ...tm, emoji: e })}
+                          style={{ width: 40, height: 40, fontSize: 21, borderRadius: 10, cursor: "pointer",
+                            border: tm.emoji === e ? "2px solid #3E9D6C" : "1px solid var(--line)", background: tm.emoji === e ? "#E9F6EF" : "#fff" }}>{e}</button>
+                      ))}
+                    </div>
+                    <div className="lab" style={{ marginTop: 12 }}>Badge color</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 9 }}>
+                      {SWATCHES.map((s) => (
+                        <button key={s} onClick={() => set({ ...tm, color: s })}
+                          style={{ width: 32, height: 32, borderRadius: 9, border: "none", background: s, cursor: "pointer", outline: tm.color === s ? "3px solid #1B2A22" : "none", outlineOffset: 2 }} />
+                      ))}
+                    </div>
+                  </>
                 )}
                 {tm.kind === "logo" && (
-                  <label className="btn ghost" style={{ display: "block", textAlign: "center", marginBottom: 10, marginTop: 0, cursor: "pointer" }}>
+                  <label className="btn ghost" style={{ display: "block", textAlign: "center", marginTop: 0, cursor: "pointer" }}>
                     {tm.logoUrl ? "✓ Logo added — tap to replace" : "⬆ Upload a logo / photo"}
                     <input type="file" accept="image/*" style={{ display: "none" }} onChange={onLogo(set, tm)} />
                   </label>
                 )}
-                <div className="lab" style={{ marginTop: 4 }}>Team colour</div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
-                  {SWATCHES.map((s) => (
-                    <button key={s} onClick={() => set({ ...tm, color: s })}
-                      style={{ width: 30, height: 30, borderRadius: 8, border: "none", background: s, cursor: "pointer", outline: tm.color === s ? "2px solid #1B2A22" : "none", outlineOffset: 2 }} />
-                  ))}
-                </div>
               </div>
             ))}
           </>
