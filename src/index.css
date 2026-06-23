@@ -108,17 +108,31 @@ body {
 .bigtile:active { transform: scale(.975); }
 .bigtile .ic { width: 42px; height: 42px; border-radius: 13px; display: flex; align-items: center;
   justify-content: center; color: #fff; }
-.bigtile.create .ic { background: linear-gradient(135deg, #3E9D6C, #2E7D5B); }
-.bigtile.join .ic { background: linear-gradient(135deg, #D4B05A, #C8A24C); }
-.bigtile.alerts .ic { background: linear-gradient(135deg, #2FA4B0, #0E7C86); }
-.bigtile.gallery .ic { background: linear-gradient(135deg, #9A6BAA, #7E4D8B); }
-.bigtile.board .ic { background: linear-gradient(135deg, #3E9D6C, #2E7D5B); }
-.bigtile.roster .ic { background: linear-gradient(135deg, #2FA4B0, #0E7C86); }
-.bigtile.pairings .ic { background: linear-gradient(135deg, #9A6BAA, #7E4D8B); }
+/* tile icon chips — brand two-tone only (green + gold). Team colours stay
+   reserved for teams; UI chrome speaks only the brand palette. */
+.bigtile.create .ic, .bigtile.alerts .ic, .bigtile.board .ic, .bigtile.pairings .ic {
+  background: linear-gradient(135deg, #3E9D6C, #2E7D5B); }
+.bigtile.join .ic, .bigtile.gallery .ic, .bigtile.roster .ic, .bigtile.code .ic {
+  background: linear-gradient(135deg, #D4B05A, #C8A24C); }
 .bigtile.code { background: #FBF4E2; border-color: #EAD9A8; }
-.bigtile.code .ic { background: linear-gradient(135deg, #D4B05A, #C8A24C); }
 .bigtile.code b { color: #9A7A1F; }
 .bigtile.code p { color: #9A7A1F; opacity: .8; }
+
+/* tile motion */
+@keyframes tileIn { from { opacity: 0; transform: translateY(9px); } to { opacity: 1; transform: none; } }
+.bigtile { animation: tileIn .42s cubic-bezier(.2,.7,.3,1) both; }
+.tilepair .bigtile:nth-child(2) { animation-delay: .06s; }
+.tilepair + .tilepair .bigtile { animation-delay: .10s; }
+.tilepair + .tilepair .bigtile:nth-child(2) { animation-delay: .16s; }
+.bigtile .ic { transition: transform .2s ease; }
+.bigtile .ic svg { transition: transform .25s ease; }
+/* primary CTA gently breathes; its plus rotates on press */
+@keyframes ctaBreathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+.bigtile.create .ic { animation: ctaBreathe 3.2s ease-in-out infinite; }
+.bigtile.create:active .ic svg { transform: rotate(90deg); }
+/* the alerts bell swings only when there's something unread */
+@keyframes bellSwing { 0%, 55%, 100% { transform: rotate(0); } 12%, 36% { transform: rotate(-13deg); } 24%, 48% { transform: rotate(13deg); } }
+.bigtile.alerts.unread .ic svg { transform-origin: 50% 5px; animation: bellSwing 2.4s ease-in-out infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .bigtile .bt-txt { margin-top: auto; }
 .bigtile b { font-size: 16.5px; color: var(--ink); }
