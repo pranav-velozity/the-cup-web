@@ -57,9 +57,16 @@ export default function Splash({ onDone }) {
     return { opacity: o, transform: `translateY(${(1 - e) * 36}px)` };
   };
   const wm = reveal(2.2), tag = reveal(2.7);
+  const pill = reveal(1.9);
 
   return (
     <div className={`splash${out ? " out" : ""}`} style={{ background: BG }} onTransitionEnd={() => out && onDone()}>
+      <div style={{ ...pill, marginBottom: 18, background: "#fff", border: "1px solid #E6EDE3",
+        borderRadius: 20, padding: "8px 16px", boxShadow: "0 2px 10px rgba(27,42,34,.06)",
+        fontWeight: 800, fontSize: 12.5, letterSpacing: ".12em" }}>
+        <span style={{ color: GREEN }}>LIVE </span>
+        <span style={{ color: INK }}>MATCH-PLAY SCORING</span>
+      </div>
       <div style={{ position: "relative", width: 200, height: 210 }}>
         {/* cup */}
         <div style={{ position: "absolute", left: "50%", top: 150, width: 56, height: 17, marginLeft: -28, borderRadius: "50%", background: "#DCE2D6", boxShadow: "inset 0 2px 4px rgba(0,0,0,.12)" }} />
