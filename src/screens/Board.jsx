@@ -3,6 +3,7 @@ import { useUser } from "@clerk/clerk-react";
 import { useApi } from "../api.js";
 import { useNav } from "../store.jsx";
 import { useLiveBoard } from "../lib/useSocket.js";
+import { usePullToRefresh, pullIndicatorStyle } from "../lib/usePullToRefresh.js";
 import { Bar, Avatar, Spinner } from "../components.jsx";
 
 export default function Board() {
@@ -40,11 +41,12 @@ export default function Board() {
   }, []);
 
   const load = useCallback(() => {
-    api(`/api/score/${code}/board`).then(applyBoard).catch(() => {});
+    return api(`/api/score/${code}/board`).then(applyBoard).catch(() => {});
   }, [api, code, applyBoard]);
 
   useEffect(() => { load(); }, [load]);
   useLiveBoard(code, { onBoard: applyBoard });
+  const ptr = usePullToRefresh(load);
 
   if (!board) return (<div className="screen"><Bar title="Tournament" onBack={back} /><Spinner /></div>);
 
@@ -140,7 +142,10 @@ export default function Board() {
   };
 
   return (
-    <div className="screen">
+    <div className="screen" ref={ptr.ref} {...ptr.handlers}>
+      <div style={pullIndicatorStyle(ptr.pull, ptr.refreshing)}>
+        <span style={{ fontSize: 20, transform: ptr.refreshing ? "none" : `rotate(${ptr.pull * 3}deg)`, animation: ptr.refreshing ? "spin .8s linear infinite" : "none" }}>↻</span>
+      </div>
       <Bar title="Home" onBack={back} />
       <div className="pad">
         <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>

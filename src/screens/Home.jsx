@@ -7,6 +7,7 @@ import InstallPrompt from "../components/InstallPrompt.jsx";
 import { soundOn, setSoundOn } from "../lib/sound.js";
 import { hasUnseen } from "./Notifications.jsx";
 import { enablePush, notifGranted } from "../lib/push.js";
+import { usePullToRefresh, pullIndicatorStyle } from "../lib/usePullToRefresh.js";
 
 // Swipe a tournament left to reveal Delete (organizer owns everything here).
 function TournamentRow({ t, onOpen, onDelete }) {
@@ -62,6 +63,8 @@ export default function Home() {
 
   useEffect(() => { load(); }, [load]);
 
+  const ptr = usePullToRefresh(load);
+
   // Push subscriptions get invalidated when the service worker updates on a
   // redeploy — silently re-subscribe on load so notifications keep flowing.
   useEffect(() => {
@@ -75,15 +78,13 @@ export default function Home() {
   };
 
   return (
-    <div className="screen">
+    <div className="screen" ref={ptr.ref} {...ptr.handlers}>
+      <div style={pullIndicatorStyle(ptr.pull, ptr.refreshing)}>
+        <span style={{ fontSize: 20, transform: ptr.refreshing ? "none" : `rotate(${ptr.pull * 3}deg)`, animation: ptr.refreshing ? "spin .8s linear infinite" : "none" }}>↻</span>
+      </div>
       <div className="bar">
         <span style={{ fontWeight: 700 }}>Home</span>
         <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <button onClick={() => go("notifs")} title="Notifications"
-            style={{ background: "none", border: "none", cursor: "pointer", color: "#1B2A22", padding: 0, display: "flex", position: "relative" }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg>
-            {unseen && <span style={{ position: "absolute", top: -2, right: -2, width: 8, height: 8, borderRadius: "50%", background: "#D9534F", border: "1.5px solid #F3F6F0" }} />}
-          </button>
           <button onClick={toggleSound} title={snd ? "Sound on" : "Sound off"}
             style={{ background: "none", border: "none", cursor: "pointer", color: snd ? "#2E7D5B" : "#9aa394", padding: 0, display: "flex" }}>
             {snd ? (
@@ -113,6 +114,21 @@ export default function Home() {
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><path d="M10 17l5-5-5-5M15 12H3" /></svg>
             </div>
             <div className="bt-txt"><b>Join</b><p>Enter a code to play</p></div>
+          </button>
+        </div>
+        <div className="tilepair" style={{ marginTop: 11 }}>
+          <button className="bigtile alerts" onClick={() => go("notifs")}>
+            <div className="ic" style={{ position: "relative" }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></svg>
+              {unseen && <span style={{ position: "absolute", top: -3, right: -3, width: 9, height: 9, borderRadius: "50%", background: "#D9534F", border: "2px solid #fff" }} />}
+            </div>
+            <div className="bt-txt"><b>Alerts</b><p>Match updates & news</p></div>
+          </button>
+          <button className="bigtile gallery" onClick={() => go("gallery")}>
+            <div className="ic">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="9" cy="9" r="1.6" /><path d="M21 15l-5-5L5 21" /></svg>
+            </div>
+            <div className="bt-txt"><b>Gallery</b><p>Photos from the round</p></div>
           </button>
         </div>
 
@@ -147,7 +163,7 @@ export default function Home() {
             Designed by Pranav
             <span style={{ height: 1, width: 22, background: "linear-gradient(90deg, #D9C38A, transparent)" }} />
           </div>
-          <div style={{ fontSize: 9, color: "var(--mut)", opacity: .45, marginTop: 3, letterSpacing: ".14em" }}>TOTO · v0.9</div>
+          <div style={{ fontSize: 9, color: "var(--mut)", opacity: .45, marginTop: 3, letterSpacing: ".14em" }}>TOTO · v1.0</div>
         </div>
       </div>
     </div>

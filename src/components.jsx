@@ -35,13 +35,18 @@ const IC = {
   create: <path d="M12 5v14M5 12h14" />,
   play: <path d="M8 5v14l11-7z" />,
   admin: <path d="M12 3l7 3v5c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6z" />,
+  bell: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" /></>,
+  gallery: <><rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="9" cy="9" r="1.6" /><path d="M21 15l-5-5L5 21" /></>,
 };
 
-export function BottomNav({ active, go, isAdmin }) {
-  const item = (key, label, path) => (
+export function BottomNav({ active, go, isAdmin, unread }) {
+  const item = (key, label, path, dot) => (
     <button className={`navbtn${active === key ? " on" : ""}`} onClick={() => go(key)}>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-        strokeLinecap="round" strokeLinejoin="round">{path}</svg>
+      <span style={{ position: "relative", display: "flex" }}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+          strokeLinecap="round" strokeLinejoin="round">{path}</svg>
+        {dot && <span style={{ position: "absolute", top: -2, right: -3, width: 8, height: 8, borderRadius: "50%", background: "#D9534F", border: "1.5px solid #fff" }} />}
+      </span>
       <span>{label}</span>
     </button>
   );
@@ -50,6 +55,7 @@ export function BottomNav({ active, go, isAdmin }) {
       {item("home", "Home", IC.home)}
       {item("create", "Create", IC.create)}
       {item("join", "Play", IC.play)}
+      {item("notifs", "Alerts", IC.bell, unread)}
       {isAdmin && item("admin", "Admin", IC.admin)}
     </div>
   );

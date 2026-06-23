@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SignedIn, SignedOut, useUser } from "@clerk/clerk-react";
 import { NavProvider, useNav } from "./store.jsx";
 import { BottomNav } from "./components.jsx";
+import { useApi } from "./api.js";
 import Splash from "./screens/Splash.jsx";
 import SignIn from "./screens/SignIn.jsx";
 import Home from "./screens/Home.jsx";
@@ -13,19 +14,28 @@ import Roster from "./screens/Roster.jsx";
 import Pairings from "./screens/Pairings.jsx";
 import Board from "./screens/Board.jsx";
 import Entry from "./screens/Entry.jsx";
-import Notifications from "./screens/Notifications.jsx";
+import Notifications, { hasUnseen } from "./screens/Notifications.jsx";
 import AdminView from "./screens/AdminView.jsx";
+import Gallery from "./screens/Gallery.jsx";
 
 function Shell() {
   const { screen, go, reset } = useNav();
   const { user } = useUser();
+  const api = useApi();
   const isAdmin = user?.publicMetadata?.role === "admin";
+  const [unread, setUnread] = useState(false);
+
+  // Keep the bottom-nav Alerts dot fresh; re-check whenever the screen changes
+  // (so it clears after the feed is opened).
+  useEffect(() => {
+    api("/api/player/notifications").then((feed) => setUnread(hasUnseen(feed))).catch(() => {});
+  }, [api, screen]);
 
   const screens = {
     home: <Home />, create: <Create />, join: <Join />, admin: <Admin />,
     hub: <Hub />, roster: <Roster />, pairings: <Pairings />,
     board: <Board />, entry: <Entry />, notifs: <Notifications />,
-    adminview: <AdminView />,
+    adminview: <AdminView />, gallery: <Gallery />,
   };
   const showNav = ["home", "hub", "board"].includes(screen);
 
@@ -36,6 +46,7 @@ function Shell() {
         <BottomNav
           active={screen === "hub" ? "home" : screen}
           isAdmin={isAdmin}
+          unread={unread}
           go={(key) => (key === "home" ? reset("home") : go(key))}
         />
       )}

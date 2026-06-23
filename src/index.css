@@ -47,7 +47,7 @@ body {
   .phone { border-radius: 0; height: 100dvh; max-width: 100%; box-shadow: none; }
 }
 
-.screen { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.screen { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
 .pad { padding: 18px 18px 24px; }
 
 /* top bar */
@@ -110,6 +110,9 @@ body {
   justify-content: center; color: #fff; }
 .bigtile.create .ic { background: linear-gradient(135deg, #3E9D6C, #2E7D5B); }
 .bigtile.join .ic { background: linear-gradient(135deg, #D4B05A, #C8A24C); }
+.bigtile.alerts .ic { background: linear-gradient(135deg, #2FA4B0, #0E7C86); }
+.bigtile.gallery .ic { background: linear-gradient(135deg, #9A6BAA, #7E4D8B); }
+@keyframes spin { to { transform: rotate(360deg); } }
 .bigtile .bt-txt { margin-top: auto; }
 .bigtile b { font-size: 16.5px; color: var(--ink); }
 .bigtile p { margin: 2px 0 0; color: var(--mut); font-size: 12px; line-height: 1.3; }
