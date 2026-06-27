@@ -54,8 +54,15 @@ export default function Board() {
 
   // "Your match" quick-link: prefer an unfinished match the user is in.
   const mineIds = board.yourMatchIds || [];
-  const mine = board.matches.find((m) => mineIds.includes(m.id) && !m.done)
+  let mine = board.matches.find((m) => mineIds.includes(m.id) && !m.done)
     || board.matches.find((m) => mineIds.includes(m.id));
+  // Stroke-diff matches aren't in board.matches; fall back to a stroke pair.
+  if (!mine) {
+    for (const sd of board.strokeDays || []) {
+      const p = sd.pairs.find((x) => mineIds.includes(x.matchId));
+      if (p) { mine = { id: p.matchId, holes: [] }; break; }
+    }
+  }
   const first = user?.firstName;
   const teamA = { name: A.name, color: A.color, emoji: A.emoji, kind: A.kind, logoUrl: A.logoUrl };
   const teamB = { name: B.name, color: B.color, emoji: B.emoji, kind: B.kind, logoUrl: B.logoUrl };
@@ -141,6 +148,52 @@ export default function Board() {
     );
   };
 
+  // Stroke-diff day: team totals + the moving "Leading" pill + ranked pairs.
+  const strokeCard = (sd) => {
+    const leadTeam = sd.leader === "A" ? A : sd.leader === "B" ? B : null;
+    const leadColor = sd.leader === "A" ? A.color : sd.leader === "B" ? B.color : "var(--mut)";
+    return (
+      <div key={`sd${sd.dayIndex}`} className="strokecard">
+        <div className="strokehead">
+          <div>
+            <b style={{ fontSize: 14 }}>Day {sd.dayIndex + 1} · Stroke play</b>
+            <div className="muted" style={{ fontSize: 11, display: "flex", alignItems: "center", gap: 5, marginTop: 1 }}>
+              {sd.locked ? "Final" : sd.provisional ? <><span className="livedot" />Live</> : "Not started"}
+            </div>
+          </div>
+          <div style={{ fontSize: 20 }}>
+            <span style={{ color: A.color, fontWeight: 800 }}>{sd.teamATotal}</span>
+            <span className="muted" style={{ margin: "0 6px" }}>–</span>
+            <span style={{ color: B.color, fontWeight: 800 }}>{sd.teamBTotal}</span>
+          </div>
+        </div>
+
+        <div className="leadwrap">
+          {sd.leader ? (
+            <div className="leadpill" style={{ transform: sd.leader === "B" ? "translateX(115%)" : "translateX(0)", background: leadColor }}>
+              <span className="leaddot" /> {leadTeam.name} leading +{sd.diff}
+            </div>
+          ) : (
+            <div className="leadpill flat">{sd.provisional ? "All square" : "Waiting for scores"}</div>
+          )}
+        </div>
+
+        <div className="pairlist">
+          {sd.pairs.map((p, i) => (
+            <div key={p.matchId + p.side} className="pairrow"
+              onClick={() => go("entry", { code, entry: { matchId: p.matchId } })}>
+              <span className="pairrank">{p.thru > 0 ? i + 1 : "·"}</span>
+              <span className="pairdot" style={{ background: p.side === "A" ? A.color : B.color }} />
+              <span className="pairname" style={{ color: p.side === "A" ? A.color : B.color }}>{p.name}</span>
+              <span className="muted" style={{ fontSize: 11.5 }}>{p.thru ? `thru ${p.thru}` : "—"}</span>
+              <b style={{ fontSize: 18, minWidth: 26, textAlign: "right" }}>{p.thru ? p.total : "–"}</b>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="screen" ref={ptr.ref} {...ptr.handlers}>
       <div style={pullIndicatorStyle(ptr.pull, ptr.refreshing)}>
@@ -198,23 +251,34 @@ export default function Board() {
           </div>
         )}
 
-        <div style={{ display: "flex", alignItems: "center", marginTop: 14, marginBottom: 9 }}>
-          <div className="lab" style={{ margin: 0 }}>Matches</div>
-          <div style={{ marginLeft: "auto" }}>
-            <div className="viewtog">
-              <button className={view === "list" ? "on" : ""} onClick={() => setView("list")}>
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>
-              </button>
-              <button className={view === "tile" ? "on" : ""} onClick={() => setView("tile")}>
-                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5" /><rect x="13" y="3" width="8" height="8" rx="1.5" /><rect x="3" y="13" width="8" height="8" rx="1.5" /><rect x="13" y="13" width="8" height="8" rx="1.5" /></svg>
-              </button>
-            </div>
+        {board.strokeDays?.length > 0 && (
+          <div style={{ marginTop: 14 }}>
+            <div className="lab" style={{ marginBottom: 9 }}>Stroke play</div>
+            {board.strokeDays.map(strokeCard)}
           </div>
-        </div>
+        )}
 
-        {view === "tile"
-          ? <div className="tilegrid">{board.matches.map(tile)}</div>
-          : board.matches.map(row)}
+        {board.matches.length > 0 && (
+          <>
+            <div style={{ display: "flex", alignItems: "center", marginTop: 14, marginBottom: 9 }}>
+              <div className="lab" style={{ margin: 0 }}>Matches</div>
+              <div style={{ marginLeft: "auto" }}>
+                <div className="viewtog">
+                  <button className={view === "list" ? "on" : ""} onClick={() => setView("list")}>
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>
+                  </button>
+                  <button className={view === "tile" ? "on" : ""} onClick={() => setView("tile")}>
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5" /><rect x="13" y="3" width="8" height="8" rx="1.5" /><rect x="3" y="13" width="8" height="8" rx="1.5" /><rect x="13" y="13" width="8" height="8" rx="1.5" /></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {view === "tile"
+              ? <div className="tilegrid">{board.matches.map(tile)}</div>
+              : board.matches.map(row)}
+          </>
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 // TOTO service worker — enables installability now, and carries the push
 // handlers so notifications light up the moment the backend starts sending.
-const CACHE = "toto-shell-v1_0";
+const CACHE = "toto-shell-v1_1";
 const SHELL = ["/", "/index.html", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", (e) => {

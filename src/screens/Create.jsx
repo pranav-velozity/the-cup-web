@@ -276,16 +276,22 @@ export default function Create() {
                 <div className="tilerow">
                   <button className={`tilebtn${d.format === "singles" ? " on" : ""}`} onClick={() => setDay(i, { format: "singles", pph: 1 })}>Singles</button>
                   <button className={`tilebtn${d.format === "scramble" ? " on" : ""}`} onClick={() => setDay(i, { format: "scramble", pph: 2 })}>Scramble</button>
+                  <button className={`tilebtn${d.format === "scramble_stroke" ? " on" : ""}`} onClick={() => setDay(i, { format: "scramble_stroke", pph: 1 })}>Strokes</button>
                 </div>
+                {d.format === "scramble_stroke" && (
+                  <p className="help" style={{ marginTop: 7 }}>Each pair's scramble strokes are summed per team; the lower team total wins the difference as points.</p>
+                )}
                 <div style={{ display: "flex", gap: 9, marginTop: 9 }}>
-                  <div style={{ flex: 1 }}><label className="lab">Matches</label>
+                  <div style={{ flex: 1 }}><label className="lab">{d.format === "scramble_stroke" ? "Pairs / team" : "Matches"}</label>
                     <input className="inp" type="number" inputMode="numeric" value={d.count}
                       onChange={(e) => setDay(i, { count: e.target.value === "" ? "" : Math.min(30, Math.max(0, +e.target.value || 0)) })}
                       onBlur={(e) => setDay(i, { count: Math.min(30, Math.max(1, +e.target.value || 1)) })} /></div>
-                  <div style={{ flex: 1 }}><label className="lab">Points / hole</label>
-                    <input className="inp" type="number" inputMode="numeric" value={d.pph}
-                      onChange={(e) => setDay(i, { pph: e.target.value === "" ? "" : Math.min(10, Math.max(0, +e.target.value || 0)) })}
-                      onBlur={(e) => setDay(i, { pph: Math.min(10, Math.max(1, +e.target.value || 1)) })} /></div>
+                  {d.format !== "scramble_stroke" && (
+                    <div style={{ flex: 1 }}><label className="lab">Points / hole</label>
+                      <input className="inp" type="number" inputMode="numeric" value={d.pph}
+                        onChange={(e) => setDay(i, { pph: e.target.value === "" ? "" : Math.min(10, Math.max(0, +e.target.value || 0)) })}
+                        onBlur={(e) => setDay(i, { pph: Math.min(10, Math.max(1, +e.target.value || 1)) })} /></div>
+                  )}
                 </div>
                 <div className="checkrow" onClick={() => setDay(i, { playAll: !d.playAll })}>
                   <div className={`checkbox${d.playAll ? " on" : ""}`}>✓</div>

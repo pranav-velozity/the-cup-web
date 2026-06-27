@@ -33,8 +33,10 @@ export async function enqueue(write) {
   const db = await openDb();
   return new Promise((resolve, reject) => {
     const store = tx(db, "readwrite");
-    // Collapse repeated taps on the same hole: keep one row per (match,hole).
-    const id = `${write.matchId}:${write.hole}`;
+    // Collapse repeated taps on the same target. Match-play = one row per
+    // (match,hole); stroke-diff = one row per (match,hole,side) so the two
+    // pairs sharing a hole don't overwrite each other.
+    const id = `${write.matchId}:${write.hole}:${write.side || "R"}`;
     const rec = { id, ...write, queuedAt: Date.now() };
     const r = store.put(rec);
     r.onsuccess = () => resolve(rec);
@@ -71,8 +73,8 @@ export async function pendingCount() {
 export async function flush(postBatch) {
   const rows = await allWrites();
   if (!rows.length) return [];
-  const writes = rows.map(({ matchId, hole, result, clientTs }) => ({
-    matchId, hole, result, clientTs,
+  const writes = rows.map(({ matchId, hole, result, side, strokes, clientTs }) => ({
+    matchId, hole, result, side, strokes, clientTs,
   }));
   await postBatch(writes);          // throws if offline / failed -> rows stay queued
   const ids = rows.map((r) => r.id);

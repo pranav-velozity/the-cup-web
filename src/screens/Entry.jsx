@@ -6,6 +6,7 @@ import { mscore, matchDone } from "../lib/scoring.js";
 import { enqueue, flush, pendingCount } from "../lib/outbox.js";
 import { playTap, playConfirm } from "../lib/sound.js";
 import { T } from "../theme.js";
+import StrokeEntry from "./StrokeEntry.jsx";
 
 export default function Entry() {
   const api = useApi();
@@ -56,6 +57,12 @@ export default function Entry() {
       el?.scrollIntoView({ inline: "center", block: "nearest", behavior: "smooth" });
     }
   }, [sel]);
+
+  // Stroke-diff matches live in board.strokeDays, not board.matches — hand off
+  // to the dedicated number-entry screen (before the match-play holes guard,
+  // which would otherwise spin forever for a stroke match).
+  if (board && (board.strokeDays || []).some((d) => d.pairs.some((p) => p.matchId === matchId)))
+    return <StrokeEntry code={code} matchId={matchId} back={back} />;
 
   if (!board || holes === null) return (<div className="screen"><Bar title="Board" onBack={back} /><Spinner /></div>);
 
