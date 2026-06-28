@@ -274,18 +274,18 @@ export default function Create() {
           <>
             <div className="h1">The matches</div>
             <p className="sub">Tap a day to set how it's played.</p>
-            {days.map((d, i) => (
-              <button key={i} className="dayrow" onClick={() => setSheetDay(i)}>
-                <div style={{ minWidth: 0 }}>
-                  <div style={{ fontWeight: 800, fontSize: 14 }}>Day {i + 1}</div>
-                  <div className="muted" style={{ fontSize: 12.5, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{summarize(d)}</div>
-                </div>
-                <div style={{ marginLeft: "auto", textAlign: "right", flex: "0 0 auto" }}>
-                  <span className="muted" style={{ fontSize: 12.5 }}>{d.count} {countWord(d)}</span>
-                  <span style={{ color: "var(--mut)", fontSize: 17, marginLeft: 6 }}>›</span>
-                </div>
-              </button>
-            ))}
+            <div className="daytilegrid">
+              {days.map((d, i) => (
+                <button key={i} className="daytile" onClick={() => setSheetDay(i)}>
+                  <div className="daytile-top">
+                    <span className="daytile-num">Day {i + 1}</span>
+                    <svg className="daytile-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d={SCORING[d.scoring].icon} /></svg>
+                  </div>
+                  <div className="daytile-fmt">{summarize(d)}</div>
+                  <div className="daytile-cnt"><span>{d.count} {countWord(d)}</span><span className="daytile-edit">Edit ›</span></div>
+                </button>
+              ))}
+            </div>
           </>
         )}
 

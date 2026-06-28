@@ -372,35 +372,45 @@ export default function Board() {
         </div>
 
         {/* live feed — newest slides in on top */}
-        {board.ticker?.length > 0 && (
-          <div className="ticker">
-            {board.ticker.slice(0, 3).map((e) => (
-              <div key={e.id} className={`tickrow${e.id === tickerNew ? " new" : ""}`}>
-                <span className="tickdot" style={{ background: e.side === "A" ? A.color : e.side === "B" ? B.color : "#C4CABD" }} />
-                <span style={{ flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.text}</span>
-                {e.hole != null && <span className="tickhole">H{e.hole}</span>}
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="ticker">
+          {board.ticker?.length > 0
+            ? board.ticker.slice(0, 3).map((e) => (
+                <div key={e.id} className={`tickrow${e.id === tickerNew ? " new" : ""}`}>
+                  <span className="tickdot" style={{ background: e.side === "A" ? A.color : e.side === "B" ? B.color : "#C4CABD" }} />
+                  <span style={{ flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.text}</span>
+                  {e.hole != null && <span className="tickhole">H{e.hole}</span>}
+                </div>
+              ))
+            : <div className="tickrow" style={{ color: "var(--mut)", justifyContent: "center", fontWeight: 600 }}>Live updates appear here as holes are won</div>}
+        </div>
 
         {/* day switcher — equal pills, swipe the strip for 3+ days */}
         {dayList.length > 0 && (
-          <div className="dayseg">
-            {dayList.map((d) => (
-              <button key={d.dayIndex} className={`segpill${d.dayIndex === active ? " on" : ""}`} onClick={() => setActiveDay(d.dayIndex)}>
-                <span className="seg-d">Day {d.dayIndex + 1}</span>
-                <span className="seg-s">{chipScore(d)}</span>
-                {d.live && <span className="livedot" style={{ marginLeft: 6 }} />}
-              </button>
-            ))}
-          </div>
+          <>
+            <div className="dayseg">
+              {dayList.map((d) => {
+                const tone = d.scoring === "stroke"
+                  ? (d.leader === "A" ? A.color : d.leader === "B" ? B.color : "var(--ink)")
+                  : (d.a > d.b ? A.color : d.b > d.a ? B.color : "var(--ink)");
+                return (
+                  <button key={d.dayIndex} className={`segpill${d.dayIndex === active ? " on" : ""}`} onClick={() => setActiveDay(d.dayIndex)}>
+                    <span className="seg-d">Day {d.dayIndex + 1}</span>
+                    <span className="seg-s" style={{ color: d.dayIndex === active ? "#fff" : tone }}>{chipScore(d)}</span>
+                    {d.live && <span className="livedot" style={{ marginLeft: 6 }} />}
+                  </button>
+                );
+              })}
+            </div>
+            {dayList.length > 1 && (
+              <div className="swipedots">{dayList.map((d, i) => <span key={d.dayIndex} className={`sdot${i === activeIdx ? " on" : ""}`} />)}</div>
+            )}
+          </>
         )}
 
         {/* the play — one day, swipe left/right to move between days */}
         {activeD && (
           <>
-            <div style={{ display: "flex", alignItems: "center", marginTop: 14, marginBottom: 4 }}>
+            <div style={{ display: "flex", alignItems: "center", marginTop: 12, marginBottom: 4 }}>
               <div className="viewtog" style={{ marginLeft: "auto" }}>
                 <button className={view === "list" ? "on" : ""} onClick={() => setView("list")}><Ico d={ICONS.list} size={15} sw={2.2} /></button>
                 <button className={view === "tile" ? "on" : ""} onClick={() => setView("tile")}><Ico d={ICONS.tile} size={15} sw={2.2} /></button>
@@ -412,13 +422,6 @@ export default function Board() {
                 {dayDetail(activeD)}
               </div>
             </div>
-            {dayList.length > 1 && (
-              <div className="swipehint">
-                <span>{activeIdx > 0 ? `‹ Day ${dayList[activeIdx - 1].dayIndex + 1}` : ""}</span>
-                <span className="swipedots">{dayList.map((d, i) => <span key={d.dayIndex} className={`sdot${i === activeIdx ? " on" : ""}`} />)}</span>
-                <span>{activeIdx < dayList.length - 1 ? `Day ${dayList[activeIdx + 1].dayIndex + 1} ›` : ""}</span>
-              </div>
-            )}
           </>
         )}
       </div>
