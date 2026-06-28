@@ -3,10 +3,11 @@ import { useApi } from "../api.js";
 import { useNav } from "../store.jsx";
 import { Bar } from "../components.jsx";
 import { SWATCHES, EMOJI } from "../theme.js";
+import { SCORING, FORMATS, SCORING_ORDER, FORMAT_ORDER, comboInfo, summarize, countLabel, countWord, defaultPph } from "../lib/formats.js";
 
 const DEFAULT_DAYS = [
-  { format: "singles", count: 18, pph: 1, playAll: true },
-  { format: "scramble", count: 9, pph: 2, playAll: true },
+  { scoring: "match", format: "singles", count: 18, pph: 1, playAll: true },
+  { scoring: "match", format: "scramble", count: 9, pph: 2, playAll: true },
 ];
 
 export default function Create() {
@@ -40,11 +41,12 @@ export default function Create() {
     img.src = URL.createObjectURL(file);
   };
   const [days, setDays] = useState(DEFAULT_DAYS.map((d) => ({ ...d })));
+  const [sheetDay, setSheetDay] = useState(null); // index of the day open in the editor sheet
 
   const setDay = (i, patch) => setDays((ds) => ds.map((d, j) => (j === i ? { ...d, ...patch } : d)));
   const setDayCount = (n) => setDays((ds) => {
     const next = ds.slice(0, n);
-    while (next.length < n) next.push({ format: "singles", count: 9, pph: 1, playAll: true });
+    while (next.length < n) next.push({ scoring: "match", format: "singles", count: 9, pph: 1, playAll: true });
     return next;
   });
 
@@ -132,9 +134,11 @@ export default function Create() {
     setBusy(true); setErr(null);
     try {
       const cleanDays = days.map((d) => ({
-        ...d,
+        scoring: d.scoring,
+        format: d.format,
         count: Math.min(30, Math.max(1, +d.count || 1)),
         pph: Math.min(10, Math.max(1, +d.pph || 1)),
+        playAll: d.playAll !== false,
       }));
       const t = await api("/api/organizer/redeem", {
         method: "POST",
@@ -269,36 +273,18 @@ export default function Create() {
         {page === 3 && (
           <>
             <div className="h1">The matches</div>
-            <p className="sub">Format, count and points for each day.</p>
+            <p className="sub">Tap a day to set how it's played.</p>
             {days.map((d, i) => (
-              <div key={i} style={{ border: "1px solid var(--line)", background: "#fff", borderRadius: 14, padding: 13, marginBottom: 11 }}>
-                <div style={{ fontWeight: 800, fontSize: 14, marginBottom: 9 }}>Day {i + 1}</div>
-                <div className="tilerow">
-                  <button className={`tilebtn${d.format === "singles" ? " on" : ""}`} onClick={() => setDay(i, { format: "singles", pph: 1 })}>Singles</button>
-                  <button className={`tilebtn${d.format === "scramble" ? " on" : ""}`} onClick={() => setDay(i, { format: "scramble", pph: 2 })}>Scramble</button>
-                  <button className={`tilebtn${d.format === "scramble_stroke" ? " on" : ""}`} onClick={() => setDay(i, { format: "scramble_stroke", pph: 1 })}>Strokes</button>
+              <button key={i} className="dayrow" onClick={() => setSheetDay(i)}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontWeight: 800, fontSize: 14 }}>Day {i + 1}</div>
+                  <div className="muted" style={{ fontSize: 12.5, marginTop: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{summarize(d)}</div>
                 </div>
-                {d.format === "scramble_stroke" && (
-                  <p className="help" style={{ marginTop: 7 }}>Each pair's scramble strokes are summed per team; the lower team total wins the difference as points.</p>
-                )}
-                <div style={{ display: "flex", gap: 9, marginTop: 9 }}>
-                  <div style={{ flex: 1 }}><label className="lab">{d.format === "scramble_stroke" ? "Pairs / team" : "Matches"}</label>
-                    <input className="inp" type="number" inputMode="numeric" value={d.count}
-                      onChange={(e) => setDay(i, { count: e.target.value === "" ? "" : Math.min(30, Math.max(0, +e.target.value || 0)) })}
-                      onBlur={(e) => setDay(i, { count: Math.min(30, Math.max(1, +e.target.value || 1)) })} /></div>
-                  {d.format !== "scramble_stroke" && (
-                    <div style={{ flex: 1 }}><label className="lab">Points / hole</label>
-                      <input className="inp" type="number" inputMode="numeric" value={d.pph}
-                        onChange={(e) => setDay(i, { pph: e.target.value === "" ? "" : Math.min(10, Math.max(0, +e.target.value || 0)) })}
-                        onBlur={(e) => setDay(i, { pph: Math.min(10, Math.max(1, +e.target.value || 1)) })} /></div>
-                  )}
+                <div style={{ marginLeft: "auto", textAlign: "right", flex: "0 0 auto" }}>
+                  <span className="muted" style={{ fontSize: 12.5 }}>{d.count} {countWord(d)}</span>
+                  <span style={{ color: "var(--mut)", fontSize: 17, marginLeft: 6 }}>›</span>
                 </div>
-                <div className="checkrow" onClick={() => setDay(i, { playAll: !d.playAll })}>
-                  <div className={`checkbox${d.playAll ? " on" : ""}`}>✓</div>
-                  <div><b style={{ fontSize: 13 }}>Play all 18 holes</b>
-                    <div className="help" style={{ marginTop: 2 }}>{d.playAll ? "Every hole is played and counted." : "Match play — a match ends once the lead is bigger than the holes left."}</div></div>
-                </div>
-              </div>
+              </button>
             ))}
           </>
         )}
@@ -309,6 +295,72 @@ export default function Create() {
             ? <button className="btn grn" style={{ marginTop: 0, flex: 2 }} onClick={() => setPage(page + 1)}>Next ›</button>
             : <button className="btn grn" style={{ marginTop: 0, flex: 2 }} onClick={create} disabled={busy}>{busy ? "Creating…" : "Create tournament"}</button>}
         </div>
+      </div>
+
+      {sheetDay !== null && <div className="caddi-scrim" onClick={() => setSheetDay(null)} />}
+      <div className={`caddi-sheet daysheet${sheetDay !== null ? " open" : ""}`}>
+        <div className="caddi-grip" onClick={() => setSheetDay(null)} />
+        {sheetDay !== null && (() => {
+          const d = days[sheetDay];
+          return (
+            <div className="daysheet-body">
+              <div className="daysheet-head">
+                <b style={{ fontSize: 16 }}>Day {sheetDay + 1}</b>
+                <span className="daysheet-sum">{summarize(d)}</span>
+              </div>
+
+              <div className="lab">Scoring</div>
+              <div className="scorerow">
+                {SCORING_ORDER.map((k) => (
+                  <button key={k} className={`scoretile${d.scoring === k ? " on" : ""}`}
+                    onClick={() => setDay(sheetDay, { scoring: k, pph: k === "match" ? defaultPph(d.format) : 1 })}>
+                    <b>{SCORING[k].label}</b>
+                    <span>{SCORING[k].blurb}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="lab" style={{ marginTop: 14 }}>Format</div>
+              <div className="fmtrow">
+                {FORMAT_ORDER.map((k) => {
+                  const info = comboInfo(d.scoring, k);
+                  return (
+                    <button key={k} className={`fmtchip${d.format === k ? " on" : ""}${info.ok ? "" : " off"}`}
+                      disabled={!info.ok} onClick={() => setDay(sheetDay, { format: k, pph: d.scoring === "match" ? defaultPph(k) : 1 })}>
+                      <span style={{ fontWeight: 700 }}>{FORMATS[k].label}</span>
+                      <small className="muted" style={{ fontSize: 11 }}>{info.ok ? FORMATS[k].blurb : info.reason}</small>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="lab" style={{ marginTop: 14 }}>{countLabel(d)}</div>
+              <input className="inp" type="number" inputMode="numeric" value={d.count}
+                onChange={(e) => setDay(sheetDay, { count: e.target.value === "" ? "" : Math.min(30, Math.max(0, +e.target.value || 0)) })}
+                onBlur={(e) => setDay(sheetDay, { count: Math.min(30, Math.max(1, +e.target.value || 1)) })} />
+
+              <div className={`optwrap${SCORING[d.scoring].opts.length ? " show" : ""}`}>
+                {SCORING[d.scoring].opts.includes("pph") && (
+                  <div style={{ marginTop: 12 }}>
+                    <label className="lab">Points / hole</label>
+                    <input className="inp" type="number" inputMode="numeric" value={d.pph}
+                      onChange={(e) => setDay(sheetDay, { pph: e.target.value === "" ? "" : Math.min(10, Math.max(0, +e.target.value || 0)) })}
+                      onBlur={(e) => setDay(sheetDay, { pph: Math.min(10, Math.max(1, +e.target.value || 1)) })} />
+                  </div>
+                )}
+                {SCORING[d.scoring].opts.includes("playAll") && (
+                  <div className="checkrow" onClick={() => setDay(sheetDay, { playAll: !d.playAll })}>
+                    <div className={`checkbox${d.playAll ? " on" : ""}`}>✓</div>
+                    <div><b style={{ fontSize: 13 }}>Play all 18 holes</b>
+                      <div className="help" style={{ marginTop: 2 }}>{d.playAll ? "Every hole is played and counted." : "A match ends once the lead is bigger than the holes left."}</div></div>
+                  </div>
+                )}
+              </div>
+
+              <button className="btn grn" style={{ marginTop: 18 }} onClick={() => setSheetDay(null)}>Done</button>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );

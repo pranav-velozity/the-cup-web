@@ -156,7 +156,7 @@ export default function Board() {
       <div key={`sd${sd.dayIndex}`} className="strokecard">
         <div className="strokehead">
           <div>
-            <b style={{ fontSize: 14 }}>Day {sd.dayIndex + 1} · Stroke play</b>
+            <b style={{ fontSize: 14 }}>Day {sd.dayIndex + 1} · Stroke play{sd.format === "singles" ? " · Singles" : " · Scramble"}</b>
             <div className="muted" style={{ fontSize: 11, display: "flex", alignItems: "center", gap: 5, marginTop: 1 }}>
               {sd.locked ? "Final" : sd.provisional ? <><span className="livedot" />Live</> : "Not started"}
             </div>

@@ -117,7 +117,7 @@ export default function StrokeEntry({ code, matchId, back }) {
       <Bar title="Board" onBack={back} />
       <div className="pad">
         <div className="muted" style={{ fontSize: 12, fontWeight: 600 }}>
-          Day {sd.dayIndex + 1} · Scramble (stroke play)
+          Day {sd.dayIndex + 1} · Stroke play · {sd.format === "singles" ? "Singles" : "Scramble"}
         </div>
 
         {!online && <div className="offline" style={{ marginTop: 10 }}>📡 Offline — saved on your phone, will sync. {pending} waiting.</div>}

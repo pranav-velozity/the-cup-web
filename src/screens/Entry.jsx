@@ -106,7 +106,7 @@ export default function Entry() {
       <Bar title="Board" onBack={back} />
       <div className="pad">
         <div className="muted" style={{ fontSize: 12, fontWeight: 600 }}>
-          Day {m.dayIndex + 1} · {m.format === "scramble" ? "Scramble" : "Singles"} · Match {m.ordinal || ""}
+          Day {m.dayIndex + 1} · Match play · {m.format === "scramble" ? "Scramble" : "Singles"} · Match {m.ordinal || ""}
           {m.pph > 1 ? ` · ${m.pph} pts/hole` : ""}
         </div>
 
