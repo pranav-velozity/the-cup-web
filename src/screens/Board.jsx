@@ -25,6 +25,11 @@ export default function Board() {
   const [board, setBoard] = useState(null);
   const [view, setView] = useState("tile");
   const [openPairs, setOpenPairs] = useState({}); // dayIndex -> show idle pairs
+  const [activeDay, setActiveDay] = useState(null);
+  const [drag, setDrag] = useState(0);            // live horizontal swipe offset
+  const [tickerNew, setTickerNew] = useState(null);
+  const touch = useRef(null);
+  const prevTop = useRef(null);
   const [flash, setFlash] = useState({});
   const prevScores = useRef({});
   const mineRef = useRef({ yourMatchIds: [], canScoreAll: false });
@@ -50,6 +55,15 @@ export default function Board() {
       setFlash(f);
       setTimeout(() => setFlash({}), 950);
     }
+
+    // New ticker headline -> slide it in on top.
+    const top = b.ticker?.[0]?.id;
+    if (top && prevTop.current && top !== prevTop.current) {
+      setTickerNew(top);
+      setTimeout(() => setTickerNew(null), 1300);
+    }
+    prevTop.current = top;
+
     setBoard(b);
   }, []);
 
@@ -236,43 +250,81 @@ export default function Board() {
   }
   const dayList = Object.values(dayMap).sort((x, y) => x.dayIndex - y.dayIndex);
 
-  const scrollToDay = (di) => document.getElementById(`day-${di}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
-
   const chipScore = (d) =>
     d.scoring === "stroke"
-      ? (d.leader ? `${d.leader === "A" ? A.name : B.name} +${d.diff}` : "level")
+      ? (d.leader ? `${d.leader === "A" ? A.name : B.name} +${d.diff}` : "Level")
       : `${d.a}–${d.b}`;
 
-  const dayBlock = (d) => {
-    const tone = d.scoring === "stroke" ? B.color : A.color;
+  // Detail for one day — the pill above carries the score, so this is just the play.
+  const dayDetail = (d) => (
+    <div>
+      <div className="daycontext">
+        <span className="dayico" style={{ color: d.scoring === "stroke" ? B.color : A.color, borderColor: (d.scoring === "stroke" ? B.color : A.color) + "33" }}>
+          <Ico d={ICONS[d.scoring === "stroke" ? "stroke" : "match"]} size={16} />
+        </span>
+        <span className="muted" style={{ fontSize: 12, fontWeight: 600 }}>
+          {d.scoring === "stroke" ? "Stroke play" : "Match play"} · {d.format === "scramble" ? "Scramble" : "Singles"}
+          {d.scoring === "stroke" && !d.done && <span style={{ opacity: .8 }}> · locks when all pairs finish</span>}
+        </span>
+      </div>
+      {d.scoring === "stroke" ? strokeBlock(d.stroke) : matchSet(d)}
+    </div>
+  );
+
+  // Match-play set with not-started matches collapsed (keeps the live ones up top).
+  const matchSet = (d) => {
+    const playing = d.matches.filter((m) => m.played > 0 || m.done);
+    const idle = d.matches.filter((m) => m.played === 0 && !m.done);
+    const open = !!openPairs[`m${d.dayIndex}`];
+    const render = (arr) => view === "tile" ? <div className="tilegrid">{arr.map(tile)}</div> : <div>{arr.map(row)}</div>;
     return (
-      <section key={d.dayIndex} id={`day-${d.dayIndex}`} className="dayblock">
-        <div className="dayblock-head">
-          <span className="dayico" style={{ color: tone, borderColor: tone + "33" }}>
-            <Ico d={ICONS[d.scoring === "stroke" ? "stroke" : "match"]} size={17} />
-          </span>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <b style={{ fontSize: 14 }}>Day {d.dayIndex + 1}</b>
-            <div className="muted" style={{ fontSize: 11.5 }}>
-              {d.scoring === "stroke" ? "Stroke play" : "Match play"} · {d.format === "scramble" ? "Scramble" : "Singles"}
-            </div>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            {d.scoring === "stroke"
-              ? (d.leader
-                  ? <span className="leadtag" style={{ background: d.leader === "A" ? A.color : B.color }}>{(d.leader === "A" ? A.name : B.name)} +{d.diff}</span>
-                  : <span className="muted" style={{ fontWeight: 700, fontSize: 13 }}>Level</span>)
-              : <b style={{ fontSize: 17 }}><span style={{ color: A.color }}>{d.a}</span><span className="muted">–</span><span style={{ color: B.color }}>{d.b}</span></b>}
-            <div className="muted" style={{ fontSize: 10, marginTop: 3, display: "flex", gap: 4, alignItems: "center", justifyContent: "flex-end" }}>
-              {d.live ? <><span className="livedot" />LIVE</> : d.done ? "FINAL" : "—"}
-            </div>
-          </div>
-        </div>
-        {d.scoring === "stroke"
-          ? strokeBlock(d.stroke)
-          : (view === "tile" ? <div className="tilegrid">{d.matches.map(tile)}</div> : <div>{d.matches.map(row)}</div>)}
-      </section>
+      <>
+        {playing.length > 0 ? render(playing)
+          : <div className="muted" style={{ fontSize: 12.5, textAlign: "center", padding: "10px 0" }}>No matches under way yet.</div>}
+        {idle.length > 0 && (
+          <>
+            <button className="idletoggle" onClick={() => setOpenPairs((o) => ({ ...o, [`m${d.dayIndex}`]: !open }))}>
+              {open ? "Hide matches not started" : `${idle.length} match${idle.length > 1 ? "es" : ""} still to start`}
+              <span style={{ marginLeft: 6 }}>{open ? "▴" : "▾"}</span>
+            </button>
+            {open && render(idle)}
+          </>
+        )}
+      </>
     );
+  };
+
+  // Resolve which single day is on screen (default: the live one).
+  const liveDefault = (dayList.find((d) => d.live) || dayList[dayList.length - 1])?.dayIndex ?? 0;
+  const active = (activeDay != null && dayList.some((d) => d.dayIndex === activeDay)) ? activeDay : liveDefault;
+  const activeIdx = Math.max(0, dayList.findIndex((d) => d.dayIndex === active));
+  const activeD = dayList[activeIdx];
+  const goDay = (delta) => {
+    const ni = Math.min(dayList.length - 1, Math.max(0, activeIdx + delta));
+    if (ni !== activeIdx) setActiveDay(dayList[ni].dayIndex);
+  };
+
+  // Horizontal swipe across the detail = change day (touch-action:pan-y keeps
+  // vertical scroll free, so no preventDefault needed).
+  const onTouchStart = (e) => { const t = e.touches[0]; touch.current = { x: t.clientX, y: t.clientY, dx: 0, axis: null }; };
+  const onTouchMove = (e) => {
+    if (!touch.current) return;
+    const t = e.touches[0];
+    const dx = t.clientX - touch.current.x, dy = t.clientY - touch.current.y;
+    if (!touch.current.axis && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) touch.current.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+    if (touch.current.axis === "x") {
+      touch.current.dx = dx;
+      const end = (activeIdx === 0 && dx > 0) || (activeIdx === dayList.length - 1 && dx < 0);
+      setDrag(end ? dx * 0.3 : dx);
+    }
+  };
+  const onTouchEnd = () => {
+    if (touch.current?.axis === "x") {
+      if (touch.current.dx < -55) goDay(1);
+      else if (touch.current.dx > 55) goDay(-1);
+    }
+    touch.current = null;
+    setDrag(0);
   };
 
   return (
@@ -283,16 +335,14 @@ export default function Board() {
       <Bar title="Home" onBack={back} />
       <div className="pad">
         <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div className="h1">Live board</div>
-            <p className="sub" style={{ display: "flex", alignItems: "center", gap: 7, margin: 0 }}>
-              {board.live ? <><span className="livedot" /><span style={{ color: "#16A34A", fontWeight: 700, fontSize: 11.5, letterSpacing: ".12em" }}>LIVE</span></>
-                : <span style={{ color: "var(--mut)", fontWeight: 700, fontSize: 11.5, letterSpacing: ".12em" }}>FINAL</span>}
-              <span className="muted" style={{ fontSize: 11.5 }}>· {board.holesPlayed} holes in</span>
-            </p>
+          <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 9 }}>
+            <div className="h1" style={{ margin: 0 }}>Live board</div>
+            {board.live
+              ? <span className="livetag"><span className="livedot" />LIVE</span>
+              : <span className="finaltag">FINAL</span>}
           </div>
           {mine && (
-            <button className="mpill" style={{ marginTop: 2, flex: "0 0 auto" }}
+            <button className="mpill" style={{ flex: "0 0 auto" }}
               onClick={() => go("entry", { code, entry: { matchId: mine.id, hole: nextHole(mine.holes) } })}>
               <span className="livedot" style={{ marginRight: 7 }} />
               {first ? `${first}'s match` : "Your match"}
@@ -301,16 +351,16 @@ export default function Board() {
           )}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 6 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 6, marginTop: 12 }}>
           <div className="crestwrap"><Avatar team={teamA} size={44} />
             <div style={{ fontWeight: 700, fontSize: 13 }}>{A.name}</div>
             <div className="bigpts" style={{ color: A.color }}>{A.points}</div></div>
-          <div style={{ textAlign: "center", minWidth: 92 }}>
+          <div style={{ textAlign: "center", minWidth: 96 }}>
             {A.points === B.points
               ? <><div style={{ fontWeight: 800, fontSize: 22, lineHeight: 1 }}>—</div><div className="muted" style={{ fontSize: 11, marginTop: 4 }}>All square</div></>
               : <><div style={{ fontWeight: 900, fontSize: 30, lineHeight: 1, color: A.points > B.points ? A.color : B.color }}>+{Math.abs(A.points - B.points)}</div>
                   <div className="muted" style={{ fontSize: 11, marginTop: 4 }}>{(A.points > B.points ? A.name : B.name)} lead</div></>}
-            <div style={{ fontSize: 9.5, color: "var(--mut)", fontWeight: 700, letterSpacing: ".1em", marginTop: 3 }}>CUP</div>
+            <div style={{ fontSize: 9.5, color: "var(--mut)", fontWeight: 700, letterSpacing: ".08em", marginTop: 3 }}>CUP · {board.holesPlayed} HOLES IN</div>
           </div>
           <div className="crestwrap"><Avatar team={teamB} size={44} />
             <div style={{ fontWeight: 700, fontSize: 13 }}>{B.name}</div>
@@ -321,34 +371,56 @@ export default function Board() {
           <div style={{ width: `${100 - board.aShare}%`, background: B.color }} />
         </div>
 
-        {/* per-day scoreboard chips */}
+        {/* live feed — newest slides in on top */}
+        {board.ticker?.length > 0 && (
+          <div className="ticker">
+            {board.ticker.slice(0, 3).map((e) => (
+              <div key={e.id} className={`tickrow${e.id === tickerNew ? " new" : ""}`}>
+                <span className="tickdot" style={{ background: e.side === "A" ? A.color : e.side === "B" ? B.color : "#C4CABD" }} />
+                <span style={{ flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.text}</span>
+                {e.hole != null && <span className="tickhole">H{e.hole}</span>}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* day switcher — equal pills, swipe the strip for 3+ days */}
         {dayList.length > 0 && (
-          <div className="daychips">
+          <div className="dayseg">
             {dayList.map((d) => (
-              <button key={d.dayIndex} className={`daychip${d.live ? " live" : ""}`} onClick={() => scrollToDay(d.dayIndex)}
-                style={{ borderColor: (d.scoring === "stroke" ? (d.leader === "A" ? A.color : d.leader === "B" ? B.color : "var(--line)") : (d.a > d.b ? A.color : d.b > d.a ? B.color : "var(--line)")) + "" }}>
-                <span className="daychip-d">Day {d.dayIndex + 1}</span>
-                <span className="daychip-s">{chipScore(d)}</span>
-                {d.live && <span className="livedot" style={{ marginLeft: 5 }} />}
+              <button key={d.dayIndex} className={`segpill${d.dayIndex === active ? " on" : ""}`} onClick={() => setActiveDay(d.dayIndex)}>
+                <span className="seg-d">Day {d.dayIndex + 1}</span>
+                <span className="seg-s">{chipScore(d)}</span>
+                {d.live && <span className="livedot" style={{ marginLeft: 6 }} />}
               </button>
             ))}
           </div>
         )}
 
-        {/* global tile / list toggle */}
-        {dayList.length > 0 && (
-          <div style={{ display: "flex", alignItems: "center", marginTop: 14 }}>
-            <div className="lab" style={{ margin: 0 }}>The play</div>
-            <div style={{ marginLeft: "auto" }}>
-              <div className="viewtog">
+        {/* the play — one day, swipe left/right to move between days */}
+        {activeD && (
+          <>
+            <div style={{ display: "flex", alignItems: "center", marginTop: 14, marginBottom: 4 }}>
+              <div className="viewtog" style={{ marginLeft: "auto" }}>
                 <button className={view === "list" ? "on" : ""} onClick={() => setView("list")}><Ico d={ICONS.list} size={15} sw={2.2} /></button>
                 <button className={view === "tile" ? "on" : ""} onClick={() => setView("tile")}><Ico d={ICONS.tile} size={15} sw={2.2} /></button>
               </div>
             </div>
-          </div>
+            <div style={{ overflow: "hidden" }}>
+              <div style={{ touchAction: "pan-y", transform: `translateX(${drag}px)`, transition: drag ? "none" : "transform .26s ease" }}
+                onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+                {dayDetail(activeD)}
+              </div>
+            </div>
+            {dayList.length > 1 && (
+              <div className="swipehint">
+                <span>{activeIdx > 0 ? `‹ Day ${dayList[activeIdx - 1].dayIndex + 1}` : ""}</span>
+                <span className="swipedots">{dayList.map((d, i) => <span key={d.dayIndex} className={`sdot${i === activeIdx ? " on" : ""}`} />)}</span>
+                <span>{activeIdx < dayList.length - 1 ? `Day ${dayList[activeIdx + 1].dayIndex + 1} ›` : ""}</span>
+              </div>
+            )}
+          </>
         )}
-
-        {dayList.map(dayBlock)}
       </div>
     </div>
   );
