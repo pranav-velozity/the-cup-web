@@ -3,13 +3,13 @@
 // on a side). Adding a method/format is a row here, not a screen rewrite.
 
 export const SCORING = {
-  match:  { key: "match",  label: "Match play",  blurb: "Win holes head-to-head — most holes won takes the points.", opts: ["pph", "playAll"] },
-  stroke: { key: "stroke", label: "Stroke play", blurb: "Lowest combined strokes wins the difference as points.",     opts: [] },
+  match:  { key: "match",  label: "Match play",  icon: "M4 12l5-4v8zM20 12l-5-4v8zM10 12h4", blurb: "Win holes head-to-head — most holes won takes the points.", opts: ["pph", "playAll"] },
+  stroke: { key: "stroke", label: "Stroke play", icon: "M7 21V4M7 4h10l-3 3.5L17 11H7",     blurb: "Lowest combined strokes wins the difference as points.",     opts: [] },
 };
 
 export const FORMATS = {
-  singles:  { key: "singles",  label: "Singles",  side: 1, blurb: "One player per side." },
-  scramble: { key: "scramble", label: "Scramble", side: 2, blurb: "Two-player team, play the best shot." },
+  singles:  { key: "singles",  label: "Singles",  side: 1, icon: "M12 11a3 3 0 100-6 3 3 0 000 6M6 20a6 6 0 0112 0", blurb: "One player per side." },
+  scramble: { key: "scramble", label: "Scramble", side: 2, icon: "M8.5 11a2.6 2.6 0 100-5.2 2.6 2.6 0 000 5.2M3 19a5.5 5.5 0 0111 0M15.5 11a2.3 2.3 0 100-4.6M14 14.6A4.8 4.8 0 0121 19", blurb: "Two-player team, best shot." },
 };
 
 export const SCORING_ORDER = ["match", "stroke"];

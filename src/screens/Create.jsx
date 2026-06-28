@@ -314,6 +314,7 @@ export default function Create() {
                 {SCORING_ORDER.map((k) => (
                   <button key={k} className={`scoretile${d.scoring === k ? " on" : ""}`}
                     onClick={() => setDay(sheetDay, { scoring: k, pph: k === "match" ? defaultPph(d.format) : 1 })}>
+                    <svg className="scoreico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d={SCORING[k].icon} /></svg>
                     <b>{SCORING[k].label}</b>
                     <span>{SCORING[k].blurb}</span>
                   </button>
@@ -327,8 +328,11 @@ export default function Create() {
                   return (
                     <button key={k} className={`fmtchip${d.format === k ? " on" : ""}${info.ok ? "" : " off"}`}
                       disabled={!info.ok} onClick={() => setDay(sheetDay, { format: k, pph: d.scoring === "match" ? defaultPph(k) : 1 })}>
-                      <span style={{ fontWeight: 700 }}>{FORMATS[k].label}</span>
-                      <small className="muted" style={{ fontSize: 11 }}>{info.ok ? FORMATS[k].blurb : info.reason}</small>
+                      <svg className="fmtico" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"><path d={FORMATS[k].icon} /></svg>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, fontSize: 13.5 }}>{FORMATS[k].label}</div>
+                        <small className="muted" style={{ fontSize: 11 }}>{info.ok ? FORMATS[k].blurb : info.reason}</small>
+                      </div>
                     </button>
                   );
                 })}

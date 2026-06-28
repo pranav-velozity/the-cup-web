@@ -6,12 +6,25 @@ import { useLiveBoard } from "../lib/useSocket.js";
 import { usePullToRefresh, pullIndicatorStyle } from "../lib/usePullToRefresh.js";
 import { Bar, Avatar, Spinner } from "../components.jsx";
 
+// Small inline icon set for day headers + the view toggle.
+const ICONS = {
+  match: <path d="M4 12l5-4v8zM20 12l-5-4v8zM10 12h4" />,        // two sides head-to-head
+  stroke: <path d="M7 21V4M7 4h10l-3 3.5L17 11H7" />,            // flag (stroke play)
+  list: <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />,
+  tile: <><rect x="3" y="3" width="8" height="8" rx="1.5" /><rect x="13" y="3" width="8" height="8" rx="1.5" /><rect x="3" y="13" width="8" height="8" rx="1.5" /><rect x="13" y="13" width="8" height="8" rx="1.5" /></>,
+};
+const Ico = ({ d, size = 16, sw = 2 }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor"
+    strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">{d}</svg>
+);
+
 export default function Board() {
   const api = useApi();
   const { user } = useUser();
   const { code, go, back } = useNav();
   const [board, setBoard] = useState(null);
   const [view, setView] = useState("tile");
+  const [openPairs, setOpenPairs] = useState({}); // dayIndex -> show idle pairs
   const [flash, setFlash] = useState({});
   const prevScores = useRef({});
   const mineRef = useRef({ yourMatchIds: [], canScoreAll: false });
@@ -148,49 +161,117 @@ export default function Board() {
     );
   };
 
-  // Stroke-diff day: team totals + the moving "Leading" pill + ranked pairs.
-  const strokeCard = (sd) => {
-    const leadTeam = sd.leader === "A" ? A : sd.leader === "B" ? B : null;
-    const leadColor = sd.leader === "A" ? A.color : sd.leader === "B" ? B.color : "var(--mut)";
-    return (
-      <div key={`sd${sd.dayIndex}`} className="strokecard">
-        <div className="strokehead">
-          <div>
-            <b style={{ fontSize: 14 }}>Day {sd.dayIndex + 1} · Stroke play{sd.format === "singles" ? " · Singles" : " · Scramble"}</b>
-            <div className="muted" style={{ fontSize: 11, display: "flex", alignItems: "center", gap: 5, marginTop: 1 }}>
-              {sd.locked ? "Final" : sd.provisional ? <><span className="livedot" />Live</> : "Not started"}
-            </div>
-          </div>
-          <div style={{ fontSize: 20 }}>
-            <span style={{ color: A.color, fontWeight: 800 }}>{sd.teamATotal}</span>
-            <span className="muted" style={{ margin: "0 6px" }}>–</span>
-            <span style={{ color: B.color, fontWeight: 800 }}>{sd.teamBTotal}</span>
-          </div>
-        </div>
-
-        <div className="leadwrap">
-          {sd.leader ? (
-            <div className="leadpill" style={{ transform: sd.leader === "B" ? "translateX(115%)" : "translateX(0)", background: leadColor }}>
-              <span className="leaddot" /> {leadTeam.name} leading +{sd.diff}
-            </div>
-          ) : (
-            <div className="leadpill flat">{sd.provisional ? "All square" : "Waiting for scores"}</div>
-          )}
-        </div>
-
-        <div className="pairlist">
-          {sd.pairs.map((p, i) => (
-            <div key={p.matchId + p.side} className="pairrow"
-              onClick={() => go("entry", { code, entry: { matchId: p.matchId } })}>
-              <span className="pairrank">{p.thru > 0 ? i + 1 : "·"}</span>
-              <span className="pairdot" style={{ background: p.side === "A" ? A.color : B.color }} />
-              <span className="pairname" style={{ color: p.side === "A" ? A.color : B.color }}>{p.name}</span>
-              <span className="muted" style={{ fontSize: 11.5 }}>{p.thru ? `thru ${p.thru}` : "—"}</span>
-              <b style={{ fontSize: 18, minWidth: 26, textAlign: "right" }}>{p.thru ? p.total : "–"}</b>
-            </div>
-          ))}
-        </div>
+  // ---- stroke-day pieces (respect the global tile/list toggle) ----
+  const pairRow = (p, rank) => (
+    <div key={p.matchId + p.side} className="pairrow"
+      onClick={() => go("entry", { code, entry: { matchId: p.matchId } })}>
+      <span className="pairrank">{p.thru > 0 ? rank : "·"}</span>
+      <span className="pairdot" style={{ background: p.side === "A" ? A.color : B.color }} />
+      <span className="pairname" style={{ color: p.side === "A" ? A.color : B.color }}>{p.name}</span>
+      <span className="muted" style={{ fontSize: 11.5 }}>{p.thru ? `thru ${p.thru}` : "—"}</span>
+      <b style={{ fontSize: 18, minWidth: 26, textAlign: "right" }}>{p.thru ? p.total : "–"}</b>
+    </div>
+  );
+  const pairTile = (p, rank) => (
+    <div key={p.matchId + p.side} className="ptile"
+      onClick={() => go("entry", { code, entry: { matchId: p.matchId } })}>
+      <div className="ptile-top">
+        <span className="pairrank">{p.thru > 0 ? rank : "·"}</span>
+        <span className="pairdot" style={{ background: p.side === "A" ? A.color : B.color }} />
+        <span className="ptile-name" style={{ color: p.side === "A" ? A.color : B.color }}>{p.name}</span>
       </div>
+      <div className="ptile-bot">
+        <b style={{ fontSize: 22 }}>{p.thru ? p.total : "–"}</b>
+        <span className="muted" style={{ fontSize: 11 }}>{p.thru ? `thru ${p.thru}` : "—"}</span>
+      </div>
+    </div>
+  );
+
+  const strokeBlock = (sd) => {
+    const played = sd.pairs.filter((p) => p.thru > 0);
+    const idle = sd.pairs.filter((p) => p.thru === 0);
+    const open = !!openPairs[sd.dayIndex];
+    const renderSet = (arr, ranked) =>
+      view === "tile"
+        ? <div className="ptilegrid">{arr.map((p, i) => pairTile(p, ranked ? i + 1 : "·"))}</div>
+        : <div className="pairlist">{arr.map((p, i) => pairRow(p, ranked ? i + 1 : "·"))}</div>;
+    return (
+      <>
+        <div className="stroketote">
+          <span style={{ color: A.color, fontWeight: 800 }}>{A.name} {sd.teamATotal}</span>
+          <span className="muted" style={{ fontSize: 11 }}>combined strokes · lower wins</span>
+          <span style={{ color: B.color, fontWeight: 800 }}>{sd.teamBTotal} {B.name}</span>
+        </div>
+        {played.length > 0 ? renderSet(played, true)
+          : <div className="muted" style={{ fontSize: 12.5, textAlign: "center", padding: "10px 0" }}>No scores in yet.</div>}
+        {idle.length > 0 && (
+          <>
+            <button className="idletoggle" onClick={() => setOpenPairs((o) => ({ ...o, [sd.dayIndex]: !open }))}>
+              {open ? "Hide pairs yet to tee off" : `${idle.length} pair${idle.length > 1 ? "s" : ""} yet to tee off`}
+              <span style={{ marginLeft: 6 }}>{open ? "▴" : "▾"}</span>
+            </button>
+            {open && renderSet(idle, false)}
+          </>
+        )}
+      </>
+    );
+  };
+
+  // ---- merge match-play + stroke into one day-ordered list ----
+  const dayMap = {};
+  for (const m of board.matches) {
+    const d = (dayMap[m.dayIndex] ||= { dayIndex: m.dayIndex, scoring: "match", format: m.format, matches: [], a: 0, b: 0, live: false, done: true });
+    d.matches.push(m);
+    d.a += m.pointsA; d.b += m.pointsB;
+    d.format = m.format;
+    if (!m.done && m.played > 0) d.live = true;
+    if (!m.done) d.done = false;
+  }
+  for (const sd of board.strokeDays || []) {
+    dayMap[sd.dayIndex] = {
+      dayIndex: sd.dayIndex, scoring: "stroke", format: sd.format, stroke: sd,
+      a: sd.teamATotal, b: sd.teamBTotal, leader: sd.leader, diff: sd.diff,
+      live: sd.provisional, done: sd.locked,
+    };
+  }
+  const dayList = Object.values(dayMap).sort((x, y) => x.dayIndex - y.dayIndex);
+
+  const scrollToDay = (di) => document.getElementById(`day-${di}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+
+  const chipScore = (d) =>
+    d.scoring === "stroke"
+      ? (d.leader ? `${d.leader === "A" ? A.name : B.name} +${d.diff}` : "level")
+      : `${d.a}–${d.b}`;
+
+  const dayBlock = (d) => {
+    const tone = d.scoring === "stroke" ? B.color : A.color;
+    return (
+      <section key={d.dayIndex} id={`day-${d.dayIndex}`} className="dayblock">
+        <div className="dayblock-head">
+          <span className="dayico" style={{ color: tone, borderColor: tone + "33" }}>
+            <Ico d={ICONS[d.scoring === "stroke" ? "stroke" : "match"]} size={17} />
+          </span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <b style={{ fontSize: 14 }}>Day {d.dayIndex + 1}</b>
+            <div className="muted" style={{ fontSize: 11.5 }}>
+              {d.scoring === "stroke" ? "Stroke play" : "Match play"} · {d.format === "scramble" ? "Scramble" : "Singles"}
+            </div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            {d.scoring === "stroke"
+              ? (d.leader
+                  ? <span className="leadtag" style={{ background: d.leader === "A" ? A.color : B.color }}>{(d.leader === "A" ? A.name : B.name)} +{d.diff}</span>
+                  : <span className="muted" style={{ fontWeight: 700, fontSize: 13 }}>Level</span>)
+              : <b style={{ fontSize: 17 }}><span style={{ color: A.color }}>{d.a}</span><span className="muted">–</span><span style={{ color: B.color }}>{d.b}</span></b>}
+            <div className="muted" style={{ fontSize: 10, marginTop: 3, display: "flex", gap: 4, alignItems: "center", justifyContent: "flex-end" }}>
+              {d.live ? <><span className="livedot" />LIVE</> : d.done ? "FINAL" : "—"}
+            </div>
+          </div>
+        </div>
+        {d.scoring === "stroke"
+          ? strokeBlock(d.stroke)
+          : (view === "tile" ? <div className="tilegrid">{d.matches.map(tile)}</div> : <div>{d.matches.map(row)}</div>)}
+      </section>
     );
   };
 
@@ -207,6 +288,7 @@ export default function Board() {
             <p className="sub" style={{ display: "flex", alignItems: "center", gap: 7, margin: 0 }}>
               {board.live ? <><span className="livedot" /><span style={{ color: "#16A34A", fontWeight: 700, fontSize: 11.5, letterSpacing: ".12em" }}>LIVE</span></>
                 : <span style={{ color: "var(--mut)", fontWeight: 700, fontSize: 11.5, letterSpacing: ".12em" }}>FINAL</span>}
+              <span className="muted" style={{ fontSize: 11.5 }}>· {board.holesPlayed} holes in</span>
             </p>
           </div>
           {mine && (
@@ -223,10 +305,13 @@ export default function Board() {
           <div className="crestwrap"><Avatar team={teamA} size={44} />
             <div style={{ fontWeight: 700, fontSize: 13 }}>{A.name}</div>
             <div className="bigpts" style={{ color: A.color }}>{A.points}</div></div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontWeight: 800, fontSize: 30, lineHeight: 1 }}>{board.holesPlayed}</div>
-            <div className="muted" style={{ fontSize: 11 }}>holes played</div>
-            <div style={{ fontSize: 11, color: "var(--mut)", fontWeight: 600, marginTop: 3 }}>{board.holesLeft} to play</div></div>
+          <div style={{ textAlign: "center", minWidth: 92 }}>
+            {A.points === B.points
+              ? <><div style={{ fontWeight: 800, fontSize: 22, lineHeight: 1 }}>—</div><div className="muted" style={{ fontSize: 11, marginTop: 4 }}>All square</div></>
+              : <><div style={{ fontWeight: 900, fontSize: 30, lineHeight: 1, color: A.points > B.points ? A.color : B.color }}>+{Math.abs(A.points - B.points)}</div>
+                  <div className="muted" style={{ fontSize: 11, marginTop: 4 }}>{(A.points > B.points ? A.name : B.name)} lead</div></>}
+            <div style={{ fontSize: 9.5, color: "var(--mut)", fontWeight: 700, letterSpacing: ".1em", marginTop: 3 }}>CUP</div>
+          </div>
           <div className="crestwrap"><Avatar team={teamB} size={44} />
             <div style={{ fontWeight: 700, fontSize: 13 }}>{B.name}</div>
             <div className="bigpts" style={{ color: B.color }}>{B.points}</div></div>
@@ -235,50 +320,35 @@ export default function Board() {
           <div style={{ width: `${board.aShare}%`, background: A.color }} />
           <div style={{ width: `${100 - board.aShare}%`, background: B.color }} />
         </div>
-        <div style={{ textAlign: "center", fontWeight: 700, fontSize: 13 }}>{board.leadText}</div>
 
-        {board.last9?.length > 0 && (
-          <div className="form9">
-            <span className="form9lab">LAST 9</span>
-            <div className="form9cells">
-              {Array.from({ length: 9 }).map((_, i) => {
-                const pad = 9 - board.last9.length;
-                const e = i >= pad ? board.last9[i - pad] : null;
-                const bg = e === "A" ? A.color : e === "B" ? B.color : e === "T" ? "#C4CABD" : null;
-                return <span key={i} className={`f9${bg ? "" : " empty"}`} style={bg ? { background: bg } : {}} />;
-              })}
-            </div>
+        {/* per-day scoreboard chips */}
+        {dayList.length > 0 && (
+          <div className="daychips">
+            {dayList.map((d) => (
+              <button key={d.dayIndex} className={`daychip${d.live ? " live" : ""}`} onClick={() => scrollToDay(d.dayIndex)}
+                style={{ borderColor: (d.scoring === "stroke" ? (d.leader === "A" ? A.color : d.leader === "B" ? B.color : "var(--line)") : (d.a > d.b ? A.color : d.b > d.a ? B.color : "var(--line)")) + "" }}>
+                <span className="daychip-d">Day {d.dayIndex + 1}</span>
+                <span className="daychip-s">{chipScore(d)}</span>
+                {d.live && <span className="livedot" style={{ marginLeft: 5 }} />}
+              </button>
+            ))}
           </div>
         )}
 
-        {board.strokeDays?.length > 0 && (
-          <div style={{ marginTop: 14 }}>
-            <div className="lab" style={{ marginBottom: 9 }}>Stroke play</div>
-            {board.strokeDays.map(strokeCard)}
-          </div>
-        )}
-
-        {board.matches.length > 0 && (
-          <>
-            <div style={{ display: "flex", alignItems: "center", marginTop: 14, marginBottom: 9 }}>
-              <div className="lab" style={{ margin: 0 }}>Matches</div>
-              <div style={{ marginLeft: "auto" }}>
-                <div className="viewtog">
-                  <button className={view === "list" ? "on" : ""} onClick={() => setView("list")}>
-                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>
-                  </button>
-                  <button className={view === "tile" ? "on" : ""} onClick={() => setView("tile")}>
-                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="8" height="8" rx="1.5" /><rect x="13" y="3" width="8" height="8" rx="1.5" /><rect x="3" y="13" width="8" height="8" rx="1.5" /><rect x="13" y="13" width="8" height="8" rx="1.5" /></svg>
-                  </button>
-                </div>
+        {/* global tile / list toggle */}
+        {dayList.length > 0 && (
+          <div style={{ display: "flex", alignItems: "center", marginTop: 14 }}>
+            <div className="lab" style={{ margin: 0 }}>The play</div>
+            <div style={{ marginLeft: "auto" }}>
+              <div className="viewtog">
+                <button className={view === "list" ? "on" : ""} onClick={() => setView("list")}><Ico d={ICONS.list} size={15} sw={2.2} /></button>
+                <button className={view === "tile" ? "on" : ""} onClick={() => setView("tile")}><Ico d={ICONS.tile} size={15} sw={2.2} /></button>
               </div>
             </div>
-
-            {view === "tile"
-              ? <div className="tilegrid">{board.matches.map(tile)}</div>
-              : board.matches.map(row)}
-          </>
+          </div>
         )}
+
+        {dayList.map(dayBlock)}
       </div>
     </div>
   );
